@@ -385,7 +385,7 @@
       <div class="card example-card">
         <div class="example-title">示例 1：最简调用（默认 text，全分类随机）</div>
         <div class="example-desc">直接返回纯文本一言。</div>
-<pre class="code"><span class="c-uri">GET /index.php</span>
+<pre class="code"><span class="c-uri">GET <span class="api-base"></span></span>
 
 <span class="c-com">// Response (text/plain)</span>
 <span class="c-str">樱花飘落的速度，是每秒五厘米哦。</span></pre>
@@ -393,7 +393,7 @@
       <div class="card example-card">
         <div class="example-title">示例 2：JSON 格式 + 指定分类</div>
         <div class="example-desc">返回完整元数据。</div>
-<pre class="code"><span class="c-uri">GET /index.php?<span class="c-key">encode</span>=<span class="c-str">json</span>&amp;<span class="c-key">c</span>=<span class="c-str">a</span></span>
+<pre class="code"><span class="c-uri">GET <span class="api-base"></span>?<span class="c-key">encode</span>=<span class="c-str">json</span>&amp;<span class="c-key">c</span>=<span class="c-str">a</span></span>
 
 <span class="c-com">// Response (application/json)</span>
 {
@@ -409,12 +409,12 @@
       <div class="card example-card">
         <div class="example-title">示例 3：多分类 + XML</div>
         <div class="example-desc">从漫画、游戏、文学三个分类随机。</div>
-<pre class="code"><span class="c-uri">GET /index.php?<span class="c-key">form</span>=<span class="c-str">xml</span>&amp;<span class="c-key">c</span>=<span class="c-str">b,c,d</span></span></pre>
+<pre class="code"><span class="c-uri">GET <span class="api-base"></span>?<span class="c-key">form</span>=<span class="c-str">xml</span>&amp;<span class="c-key">c</span>=<span class="c-str">b,c,d</span></span></pre>
       </div>
       <div class="card example-card">
         <div class="example-title">示例 4：INI 格式 + 诗词 + 网易云</div>
         <div class="example-desc">适合 ini 解析场景。</div>
-<pre class="code"><span class="c-uri">GET /index.php?<span class="c-key">form</span>=<span class="c-str">ini</span>&amp;<span class="c-key">c</span>=<span class="c-str">i,j</span></span></pre>
+<pre class="code"><span class="c-uri">GET <span class="api-base"></span>?<span class="c-key">form</span>=<span class="c-str">ini</span>&amp;<span class="c-key">c</span>=<span class="c-str">i,j</span></span></pre>
       </div>
     </div>
   </section>
@@ -445,7 +445,7 @@
         </div>
       </form>
       <div class="pg-url-preview">
-        <b>请求 URL：</b><span id="pgUrlPreview">index.php</span>
+        <b>请求 URL：</b><span id="pgUrlPreview">./</span>
       </div>
       <div class="pg-actions">
         <div class="pg-actions-left">
@@ -476,7 +476,6 @@
 </div>
 <div class="toast" id="toast"></div>
 <script>
-  // 所有路径均为相对路径，适配子路径部署（如 /yy）
   let CATEGORIES = [];
   const CAT_STATS = {};
   const pgSelected = new Set();
@@ -498,7 +497,6 @@
     setTimeout(() => t.classList.remove('show'), 1800);
   }
 
-  // 加载分类元数据（相对路径 ./categories.json）
   async function loadCategories() {
     try {
       const resp = await fetch('./categories.json', { cache: 'no-cache' });
@@ -528,7 +526,6 @@
     `).join('');
   }
 
-  // 后台并行统计每个分类的句子数（相对路径 ./sentences/{key}.json）
   async function loadStatsInBackground() {
     const tasks = CATEGORIES.map(async (c) => {
       try {
@@ -574,8 +571,13 @@
     setTimeout(runTest, 520);
   }
 
-  // 相对路径构建查询：index.php?encode=json&c=a
-  function buildRelativeUrl() {
+  function getApiBase() {
+    const path = location.pathname;
+    const dir = path.substring(0, path.lastIndexOf('/') + 1);
+    return location.origin + dir;
+  }
+
+  function buildParams() {
     const encode = document.getElementById('pgEncode').value;
     const charset = document.getElementById('pgCharset').value;
     const params = [];
@@ -584,17 +586,23 @@
     if (pgSelected.size > 0) {
       params.push('c=' + encodeURIComponent(Array.from(pgSelected).join(',')));
     }
-    return 'index.php' + (params.length ? '?' + params.join('&') : '');
+    return params;
   }
 
-  // 构造可复制的绝对 URL（基于当前页面地址解析相对路径）
   function buildAbsoluteUrl() {
-    const base = location.href.split('#')[0];
-    return new URL(buildRelativeUrl(), base).href;
+    const params = buildParams();
+    return getApiBase() + (params.length ? '?' + params.join('&') : '');
+  }
+
+  function fillExampleUrls() {
+    const base = getApiBase();
+    document.querySelectorAll('.api-base').forEach((el) => {
+      el.textContent = base;
+    });
   }
 
   function updateUrlPreview() {
-    document.getElementById('pgUrlPreview').textContent = buildRelativeUrl();
+    document.getElementById('pgUrlPreview').textContent = buildAbsoluteUrl();
   }
 
   ['pgEncode', 'pgCharset'].forEach((id) => {
@@ -616,7 +624,7 @@
   }
 
   async function runTest() {
-    const url = buildRelativeUrl();
+    const url = buildAbsoluteUrl();
     updateUrlPreview();
     const tag = document.getElementById('pgStatus');
     const resEl = document.getElementById('pgResult');
@@ -686,6 +694,8 @@
     }
   }
 
+  fillExampleUrls();
+  updateUrlPreview();
   loadCategories();
 </script>
 </body>
