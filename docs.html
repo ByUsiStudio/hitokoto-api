@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ByUsi Studio · 一言 API 文档</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --yellow-50: #FFFBEB;  --yellow-100: #FFF3CD;  --yellow-200: #FFEAA7;  --yellow-300: #FFE066;
+    --blue-50: #E8F4FD;    --blue-100: #D1E9F9;    --blue-200: #A8D4F0;    --blue-300: #74B9E6;
+    --blue-400: #3F9BDD;   --blue-500: #1E88E5;
+    --text-primary: #2C3E50;  --text-secondary: #546E7A;  --text-muted: #90A4AE;
+    --border: #E0E6EC;  --card: #FFFFFF;
+    --shadow: 0 2px 12px rgba(30,136,229,0.08);
+    --shadow-hover: 0 8px 28px rgba(30,136,229,0.15);
+    --radius: 14px;  --radius-sm: 10px;
+    --duration: 500ms;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+      "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: linear-gradient(135deg, var(--blue-50) 0%, var(--yellow-50) 100%);
+    color: var(--text-primary);
+    min-height: 100vh;
+    line-height: 1.7;
+  }
+  .container { max-width: 1100px; margin: 0 auto; padding: 40px 24px 80px; }
+
+  .hero {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 56px 48px;
+    box-shadow: var(--shadow);
+    text-align: center;
+    margin-bottom: 40px;
+    position: relative;
+    overflow: hidden;
+    transition: box-shadow var(--duration) cubic-bezier(.4,0,.2,1);
+  }
+  .hero::before {
+    content: ""; position: absolute; top: -60px; right: -60px;
+    width: 200px; height: 200px; border-radius: 50%;
+    background: var(--yellow-100);
+    transition: transform var(--duration) cubic-bezier(.4,0,.2,1);
+  }
+  .hero::after {
+    content: ""; position: absolute; bottom: -80px; left: -40px;
+    width: 240px; height: 240px; border-radius: 50%;
+    background: var(--blue-100);
+    transition: transform var(--duration) cubic-bezier(.4,0,.2,1);
+  }
+  .hero:hover::before { transform: translate(20px,-10px) scale(1.1); }
+  .hero:hover::after  { transform: translate(-20px,20px) scale(1.08); }
+  .hero > * { position: relative; z-index: 1; }
+  .hero-badge {
+    display: inline-block; padding: 6px 18px;
+    background: var(--blue-100); color: var(--blue-500);
+    border-radius: 999px;
+    font-size: 13px; font-weight: 600; letter-spacing: .5px;
+    margin-bottom: 20px;
+  }
+  .hero-title {
+    font-size: 42px; font-weight: 800; margin-bottom: 16px;
+    background: linear-gradient(135deg, var(--blue-500), #F0B429);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .hero-subtitle {
+    font-size: 16px; color: var(--text-secondary);
+    margin-bottom: 32px; max-width: 620px; margin-left: auto; margin-right: auto;
+  }
+  .hero-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 26px; border-radius: 999px;
+    font-size: 14px; font-weight: 600;
+    cursor: pointer; border: none; text-decoration: none;
+    transition: all var(--duration) cubic-bezier(.4,0,.2,1);
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--blue-400), var(--blue-500));
+    color: #fff; box-shadow: 0 4px 14px rgba(30,136,229,.3);
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(30,136,229,.4); }
+  .btn-secondary {
+    background: var(--yellow-100); color: #B7791F; border: 1px solid var(--yellow-200);
+  }
+  .btn-secondary:hover { background: var(--yellow-200); transform: translateY(-2px); }
+
+  .section { margin-bottom: 48px; }
+  .section-title {
+    font-size: 24px; font-weight: 700; margin-bottom: 20px;
+    padding-left: 14px; border-left: 4px solid var(--blue-400);
+  }
+  .section-desc { color: var(--text-secondary); margin-bottom: 20px; padding-left: 18px; }
+  .card {
+    background: var(--card); border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    transition: all var(--duration) cubic-bezier(.4,0,.2,1);
+  }
+  .card:hover { box-shadow: var(--shadow-hover); }
+
+  .cat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+  }
+  .cat-card {
+    padding: 22px; border-radius: var(--radius-sm);
+    background: var(--card); border: 1px solid var(--border);
+    transition: all var(--duration) cubic-bezier(.4,0,.2,1);
+    cursor: pointer; position: relative; overflow: hidden;
+  }
+  .cat-card::after {
+    content: ""; position: absolute; top: 0; left: 0;
+    width: 4px; height: 100%;
+    transition: width var(--duration) cubic-bezier(.4,0,.2,1);
+  }
+  .cat-card:nth-child(6n+1)::after { background: linear-gradient(to bottom, #FFE066, #F7C948); }
+  .cat-card:nth-child(6n+2)::after { background: linear-gradient(to bottom, #74B9E6, #3F9BDD); }
+  .cat-card:nth-child(6n+3)::after { background: linear-gradient(to bottom, #95D1A5, #52B788); }
+  .cat-card:nth-child(6n+4)::after { background: linear-gradient(to bottom, #F4A261, #E76F51); }
+  .cat-card:nth-child(6n+5)::after { background: linear-gradient(to bottom, #C9A0DC, #A56CC1); }
+  .cat-card:nth-child(6n+6)::after { background: linear-gradient(to bottom, #FFB3C1, #FF758F); }
+  .cat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 28px rgba(30,136,229,.12);
+    border-color: var(--blue-200);
+  }
+  .cat-card:hover::after { width: 6px; }
+  .cat-key {
+    display: inline-block;
+    width: 36px; height: 36px; line-height: 36px; text-align: center;
+    border-radius: 10px;
+    background: var(--blue-100); color: var(--blue-500);
+    font-weight: 700; font-size: 15px; margin-bottom: 12px;
+  }
+  .cat-name { font-size: 17px; font-weight: 700; margin-bottom: 6px; }
+  .cat-desc { font-size: 13px; color: var(--text-secondary); margin-bottom: 12px; min-height: 38px; }
+  .cat-stat {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 12px;
+    background: var(--yellow-50); border: 1px solid var(--yellow-200);
+    border-radius: 999px;
+    font-size: 12px; color: #B7791F; font-weight: 600;
+  }
+
+  .params-wrap { padding: 8px 28px 28px; }
+  table.params { width: 100%; border-collapse: collapse; }
+  table.params th, table.params td {
+    padding: 16px 14px; text-align: left;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+    transition: background var(--duration) ease;
+  }
+  table.params th {
+    background: var(--blue-50); color: var(--blue-500);
+    font-size: 13px; font-weight: 700; letter-spacing: .5px;
+  }
+  table.params tr:hover td { background: var(--yellow-50); }
+  table.params tr:last-child td { border-bottom: none; }
+  .param-name {
+    font-family: "JetBrains Mono", Consolas, Monaco, monospace;
+    font-weight: 700; color: var(--blue-500); font-size: 13.5px;
+  }
+  .param-default {
+    font-family: "JetBrains Mono", Consolas, Monaco, monospace;
+    font-size: 12.5px; color: var(--text-muted);
+    background: #F5F7FA; padding: 2px 8px; border-radius: 6px;
+  }
+
+  pre.code {
+    background: #1E293B; color: #E2E8F0;
+    padding: 22px 26px; border-radius: var(--radius-sm);
+    font-family: "JetBrains Mono", Consolas, Monaco, monospace;
+    font-size: 13.5px; line-height: 1.7;
+    overflow-x: auto; margin: 12px 0 0;
+  }
+  pre.code .c-key  { color: #FFB454; }
+  pre.code .c-str  { color: #A5D6FF; }
+  pre.code .c-num  { color: #C3E88D; }
+  pre.code .c-com  { color: #546E7A; font-style: italic; }
+  pre.code .c-punc { color: #89DDFF; }
+  pre.code .c-prop { color: #F07178; }
+  pre.code .c-uri  { color: #82AAFF; text-decoration: underline; }
+
+  .examples { display: flex; flex-direction: column; gap: 20px; padding: 8px 0; }
+  .example-card { padding: 24px 28px; }
+  .example-title { font-weight: 700; margin-bottom: 4px; font-size: 15px; }
+  .example-desc  { color: var(--text-secondary); font-size: 13px; margin-bottom: 14px; }
+
+  .playground-card { padding: 32px; }
+  .pg-form { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 24px; }
+  .pg-field label {
+    display: block; font-size: 13px; font-weight: 600;
+    color: var(--text-secondary); margin-bottom: 8px;
+  }
+  .pg-field select, .pg-field input {
+    width: 100%; padding: 11px 14px;
+    border: 1.5px solid var(--border); border-radius: 10px;
+    font-size: 14px; font-family: inherit;
+    background: #fff; color: var(--text-primary);
+    transition: all var(--duration) ease; outline: none;
+  }
+  .pg-field select:focus, .pg-field input:focus {
+    border-color: var(--blue-400);
+    box-shadow: 0 0 0 4px rgba(30,136,229,.12);
+  }
+  .pg-field-full { grid-column: span 2; }
+  .pg-cats { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pg-cat-chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 6px 14px;
+    border: 1.5px solid var(--border); border-radius: 999px;
+    font-size: 12.5px; font-weight: 600;
+    cursor: pointer; background: #fff; color: var(--text-secondary);
+    transition: all var(--duration) ease; user-select: none;
+  }
+  .pg-cat-chip:hover { border-color: var(--blue-200); background: var(--blue-50); color: var(--blue-500); }
+  .pg-cat-chip.active {
+    background: linear-gradient(135deg, var(--blue-400), var(--blue-500));
+    border-color: transparent; color: #fff;
+    box-shadow: 0 4px 12px rgba(30,136,229,.3);
+  }
+  .pg-url-preview {
+    background: var(--yellow-50);
+    border: 1px dashed var(--yellow-300);
+    border-radius: 10px;
+    padding: 12px 16px; margin-bottom: 18px;
+    font-family: "JetBrains Mono", Consolas, Monaco, monospace;
+    font-size: 12.5px; color: #7A5100; word-break: break-all;
+  }
+  .pg-url-preview b { color: #B7791F; }
+  .pg-result-wrap {
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    transition: all var(--duration) ease;
+  }
+  .pg-result-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 18px;
+    background: var(--blue-50);
+    border-bottom: 1px solid var(--border);
+  }
+  .pg-result-header h4 { font-size: 13px; font-weight: 700; color: var(--blue-500); }
+  .pg-result {
+    background: #FAFBFC;
+    padding: 18px 20px;
+    max-height: 320px; overflow: auto;
+    font-family: "JetBrains Mono", Consolas, Monaco, monospace;
+    font-size: 13px; color: var(--text-primary);
+    white-space: pre-wrap; word-break: break-all;
+    line-height: 1.7;
+  }
+  .pg-result.hitokoto-quote {
+    font-family: "PingFang SC","Microsoft YaHei",serif;
+    font-size: 20px; line-height: 1.9;
+    padding: 28px 32px; text-align: center; font-weight: 500;
+  }
+  .pg-result.hitokoto-quote::before { content: "\201C"; font-size: 32px; color: var(--blue-300); margin-right: 8px; }
+  .pg-result.hitokoto-quote::after  { content: "\201D"; font-size: 32px; color: var(--yellow-300); margin-left: 8px; }
+  .pg-result.hitokoto-from {
+    text-align: right; color: var(--text-secondary);
+    font-size: 14px; padding: 0 32px 28px; font-style: italic;
+  }
+  .pg-actions { display: flex; gap: 12px; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+  .pg-actions-left, .pg-actions-right { display: flex; gap: 12px; }
+  .btn-copy {
+    background: var(--blue-50); color: var(--blue-500);
+    border: 1px solid var(--blue-100);
+    padding: 10px 20px; border-radius: 999px;
+    cursor: pointer; font-size: 13px; font-weight: 600;
+    transition: background var(--duration) ease;
+  }
+  .btn-copy:hover { background: var(--blue-100); }
+  .status-tag {
+    display: inline-block;
+    padding: 4px 12px; border-radius: 999px;
+    font-size: 12px; font-weight: 700;
+  }
+  .status-tag.ok  { background: #E6F7EC; color: #2E8B57; }
+  .status-tag.err { background: #FDECEA; color: #C9372C; }
+
+  footer { text-align: center; padding: 32px 0 0; color: var(--text-muted); font-size: 13px; }
+  footer a { color: var(--blue-400); text-decoration: none; transition: color var(--duration) ease; }
+  footer a:hover { color: var(--blue-500); }
+
+  .toast {
+    position: fixed; top: 30px; left: 50%;
+    transform: translateX(-50%) translateY(-80px);
+    background: #2C3E50; color: #fff;
+    padding: 12px 26px; border-radius: 999px;
+    font-size: 13px; font-weight: 600;
+    box-shadow: 0 8px 24px rgba(0,0,0,.2);
+    z-index: 9999; opacity: 0; pointer-events: none;
+    transition: all var(--duration) cubic-bezier(.4,0,.2,1);
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  .loading-tip { color: var(--text-muted); font-size: 13px; padding: 12px 4px; }
+
+  @media (max-width: 640px) {
+    .hero { padding: 40px 24px; }
+    .hero-title { font-size: 30px; }
+    .pg-form { grid-template-columns: 1fr; }
+    .pg-field-full { grid-column: span 1; }
+    .playground-card, .example-card { padding: 20px; }
+    .params-wrap { padding: 4px 14px 18px; }
+    table.params th, table.params td { padding: 12px 10px; font-size: 13px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="hero">
+    <span class="hero-badge">RESTful JSON API</span>
+    <h1 class="hero-title">ByUsi Studio &middot; 一言 API</h1>
+    <p class="hero-subtitle">
+      收录动画、漫画、游戏、文学、诗词、网易云热评等 12 大分类，
+      为你的网站、小程序、应用提供优美的随机句子接口。
+    </p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="#playground">立即体验</a>
+      <a class="btn btn-secondary" href="#categories">查看分类</a>
+    </div>
+  </div>
+
+  <section class="section" id="categories">
+    <h2 class="section-title">支持的分类</h2>
+    <p class="section-desc">共 12 个分类，点击卡片可快速筛选并跳转测试。</p>
+    <div class="cat-grid" id="catGrid">
+      <div class="loading-tip">正在加载分类数据…</div>
+    </div>
+  </section>
+
+  <section class="section" id="params">
+    <h2 class="section-title">参数说明</h2>
+    <div class="card">
+      <div class="params-wrap">
+        <table class="params">
+          <thead>
+            <tr>
+              <th style="width:18%">参数名</th>
+              <th style="width:12%">类型</th>
+              <th style="width:12%">默认值</th>
+              <th>说明</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="param-name">form</span></td>
+              <td>string</td>
+              <td><span class="param-default">text</span></td>
+              <td><b>（保留原有）</b> 输出格式。可选值：<code>text</code> / <code>json</code> / <code>xml</code> / <code>ini</code></td>
+            </tr>
+            <tr>
+              <td><span class="param-name">encode</span></td>
+              <td>string</td>
+              <td>&mdash;</td>
+              <td><b>（新增）</b> 输出格式别名，优先级高于 <code>form</code>，便于与其他一言服务兼容。</td>
+            </tr>
+            <tr>
+              <td><span class="param-name">c</span></td>
+              <td>string</td>
+              <td>（全部分类）</td>
+              <td><b>（新增）</b> 分类筛选。单个：<code>?c=a</code>；多个用英文逗号：<code>?c=a,b,c</code>。不传则随机全部分类。</td>
+            </tr>
+            <tr>
+              <td><span class="param-name">charset</span></td>
+              <td>string</td>
+              <td><span class="param-default">utf-8</span></td>
+              <td><b>（新增）</b> 响应字符集，如 <code>?charset=gbk</code>。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="examples">
+    <h2 class="section-title">调用示例</h2>
+    <div class="examples">
+      <div class="card example-card">
+        <div class="example-title">示例 1：最简调用（默认 text，全分类随机）</div>
+        <div class="example-desc">直接返回纯文本一言。</div>
+<pre class="code"><span class="c-uri">GET /index.php</span>
+
+<span class="c-com">// Response (text/plain)</span>
+<span class="c-str">樱花飘落的速度，是每秒五厘米哦。</span></pre>
+      </div>
+      <div class="card example-card">
+        <div class="example-title">示例 2：JSON 格式 + 指定分类</div>
+        <div class="example-desc">返回完整元数据。</div>
+<pre class="code"><span class="c-uri">GET /index.php?<span class="c-key">encode</span>=<span class="c-str">json</span>&amp;<span class="c-key">c</span>=<span class="c-str">a</span></span>
+
+<span class="c-com">// Response (application/json)</span>
+{
+  <span class="c-prop">"hitokoto"</span>: <span class="c-str">"你不会死的，因为我会保护你。"</span>,
+  <span class="c-prop">"message"</span>:  <span class="c-str">"你不会死的，因为我会保护你。"</span>, <span class="c-com">// 兼容旧版</span>
+  <span class="c-prop">"type"</span>:      <span class="c-str">"a"</span>,
+  <span class="c-prop">"from"</span>:      <span class="c-str">"EVA"</span>,
+  <span class="c-prop">"from_who"</span>:  <span class="c-punc">null</span>,
+  <span class="c-prop">"creator"</span>:   <span class="c-str">"绫波丽"</span>,
+  <span class="c-prop">"length"</span>:    <span class="c-num">14</span>
+}</pre>
+      </div>
+      <div class="card example-card">
+        <div class="example-title">示例 3：多分类 + XML</div>
+        <div class="example-desc">从漫画、游戏、文学三个分类随机。</div>
+<pre class="code"><span class="c-uri">GET /index.php?<span class="c-key">form</span>=<span class="c-str">xml</span>&amp;<span class="c-key">c</span>=<span class="c-str">b,c,d</span></span></pre>
+      </div>
+      <div class="card example-card">
+        <div class="example-title">示例 4：INI 格式 + 诗词 + 网易云</div>
+        <div class="example-desc">适合 ini 解析场景。</div>
+<pre class="code"><span class="c-uri">GET /index.php?<span class="c-key">form</span>=<span class="c-str">ini</span>&amp;<span class="c-key">c</span>=<span class="c-str">i,j</span></span></pre>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="playground">
+    <h2 class="section-title">在线测试</h2>
+    <div class="card playground-card">
+      <form class="pg-form" id="pgForm" onsubmit="event.preventDefault(); runTest();">
+        <div class="pg-field">
+          <label>输出格式 (form / encode)</label>
+          <select id="pgEncode">
+            <option value="json">JSON（完整信息）</option>
+            <option value="text">TEXT（仅一言）</option>
+            <option value="xml">XML</option>
+            <option value="ini">INI</option>
+          </select>
+        </div>
+        <div class="pg-field">
+          <label>字符集 (charset)</label>
+          <select id="pgCharset">
+            <option value="utf-8">UTF-8</option>
+            <option value="gbk">GBK</option>
+          </select>
+        </div>
+        <div class="pg-field pg-field-full">
+          <label>分类筛选 (c) &mdash; 点击切换，空=全部：</label>
+          <div class="pg-cats" id="pgCats"></div>
+        </div>
+      </form>
+      <div class="pg-url-preview">
+        <b>请求 URL：</b><span id="pgUrlPreview">index.php</span>
+      </div>
+      <div class="pg-actions">
+        <div class="pg-actions-left">
+          <button type="button" class="btn btn-primary" onclick="runTest()">发送请求</button>
+          <button type="button" class="btn btn-secondary" onclick="resetForm()">重置</button>
+        </div>
+        <div class="pg-actions-right">
+          <button type="button" class="btn-copy" onclick="copyUrl()">复制 URL</button>
+          <span id="pgStatus" class="status-tag" style="display:none;"></span>
+        </div>
+      </div>
+      <div class="pg-result-wrap">
+        <div class="pg-result-header">
+          <h4>响应结果</h4>
+          <button type="button" class="btn-copy" onclick="copyResult()">复制内容</button>
+        </div>
+        <div id="pgQuote" style="display:none;"></div>
+        <div id="pgFrom" style="display:none;"></div>
+        <pre id="pgResult" class="pg-result">点击「发送请求」开始体验</pre>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>Powered by Hitokoto API &middot; 数据来源：<a href="https://hitokoto.cn" target="_blank" rel="noopener">hitokoto.cn</a></p>
+  </footer>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+  // 所有路径均为相对路径，适配子路径部署（如 /yy）
+  let CATEGORIES = [];
+  const CAT_STATS = {};
+  const pgSelected = new Set();
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, (ch) => (
+      {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]
+    ));
+  }
+
+  function cssEscape(s) {
+    return String(s).replace(/(["\\])/g, '\\$1');
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 1800);
+  }
+
+  // 加载分类元数据（相对路径 ./categories.json）
+  async function loadCategories() {
+    try {
+      const resp = await fetch('./categories.json', { cache: 'no-cache' });
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      CATEGORIES = await resp.json();
+      if (!Array.isArray(CATEGORIES)) throw new Error('categories.json 不是数组');
+    } catch (e) {
+      document.getElementById('catGrid').innerHTML =
+        '<div class="loading-tip">加载 categories.json 失败：' + escapeHtml(e.message) + '</div>';
+      return;
+    }
+    renderCategoryCards();
+    renderPigCats();
+    loadStatsInBackground();
+    updateUrlPreview();
+  }
+
+  function renderCategoryCards() {
+    const grid = document.getElementById('catGrid');
+    grid.innerHTML = CATEGORIES.map((c) => `
+      <div class="cat-card" data-key="${escapeHtml(c.key)}" onclick="jumpToCat('${escapeHtml(c.key)}')">
+        <div class="cat-key">${escapeHtml(String(c.key).toUpperCase())}</div>
+        <div class="cat-name">${escapeHtml(c.name)}</div>
+        <div class="cat-desc">${escapeHtml(c.desc || '')}</div>
+        <div class="cat-stat" data-stat="${escapeHtml(c.key)}">统计中…</div>
+      </div>
+    `).join('');
+  }
+
+  // 后台并行统计每个分类的句子数（相对路径 ./sentences/{key}.json）
+  async function loadStatsInBackground() {
+    const tasks = CATEGORIES.map(async (c) => {
+      try {
+        const resp = await fetch('./sentences/' + encodeURIComponent(c.key) + '.json', { cache: 'no-cache' });
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        const data = await resp.json();
+        const count = Array.isArray(data) ? data.length : 0;
+        CAT_STATS[c.key] = count;
+        const el = document.querySelector(`.cat-stat[data-stat="${cssEscape(c.key)}"]`);
+        if (el) el.textContent = count + ' 条';
+      } catch (e) {
+        CAT_STATS[c.key] = 0;
+        const el = document.querySelector(`.cat-stat[data-stat="${cssEscape(c.key)}"]`);
+        if (el) el.textContent = '加载失败';
+      }
+    });
+    await Promise.all(tasks);
+  }
+
+  function renderPigCats() {
+    const wrap = document.getElementById('pgCats');
+    wrap.innerHTML = CATEGORIES.map((c) => `
+      <label class="pg-cat-chip" data-key="${escapeHtml(c.key)}" onclick="toggleCat('${escapeHtml(c.key)}', this)">
+        <span>${escapeHtml(String(c.key).toUpperCase())}</span>
+        <span>${escapeHtml(c.name)}</span>
+      </label>
+    `).join('');
+  }
+
+  function toggleCat(key, el) {
+    if (pgSelected.has(key)) { pgSelected.delete(key); el.classList.remove('active'); }
+    else { pgSelected.add(key); el.classList.add('active'); }
+    updateUrlPreview();
+  }
+
+  function jumpToCat(key) {
+    pgSelected.clear();
+    document.querySelectorAll('.pg-cat-chip').forEach((c) => c.classList.remove('active'));
+    pgSelected.add(key);
+    const chip = document.querySelector(`.pg-cat-chip[data-key="${cssEscape(key)}"]`);
+    if (chip) chip.classList.add('active');
+    document.getElementById('playground').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setTimeout(runTest, 520);
+  }
+
+  // 相对路径构建查询：index.php?encode=json&c=a
+  function buildRelativeUrl() {
+    const encode = document.getElementById('pgEncode').value;
+    const charset = document.getElementById('pgCharset').value;
+    const params = [];
+    params.push('encode=' + encodeURIComponent(encode));
+    if (charset !== 'utf-8') params.push('charset=' + encodeURIComponent(charset));
+    if (pgSelected.size > 0) {
+      params.push('c=' + encodeURIComponent(Array.from(pgSelected).join(',')));
+    }
+    return 'index.php' + (params.length ? '?' + params.join('&') : '');
+  }
+
+  // 构造可复制的绝对 URL（基于当前页面地址解析相对路径）
+  function buildAbsoluteUrl() {
+    const base = location.href.split('#')[0];
+    return new URL(buildRelativeUrl(), base).href;
+  }
+
+  function updateUrlPreview() {
+    document.getElementById('pgUrlPreview').textContent = buildRelativeUrl();
+  }
+
+  ['pgEncode', 'pgCharset'].forEach((id) => {
+    document.getElementById(id).addEventListener('change', updateUrlPreview);
+  });
+
+  function resetForm() {
+    document.getElementById('pgEncode').value = 'json';
+    document.getElementById('pgCharset').value = 'utf-8';
+    pgSelected.clear();
+    document.querySelectorAll('.pg-cat-chip').forEach((c) => c.classList.remove('active'));
+    updateUrlPreview();
+    const resEl = document.getElementById('pgResult');
+    resEl.textContent = '点击「发送请求」开始体验';
+    resEl.style.display = 'block';
+    document.getElementById('pgQuote').style.display = 'none';
+    document.getElementById('pgFrom').style.display = 'none';
+    document.getElementById('pgStatus').style.display = 'none';
+  }
+
+  async function runTest() {
+    const url = buildRelativeUrl();
+    updateUrlPreview();
+    const tag = document.getElementById('pgStatus');
+    const resEl = document.getElementById('pgResult');
+    const quoteEl = document.getElementById('pgQuote');
+    const fromEl = document.getElementById('pgFrom');
+    resEl.textContent = '请求中…';
+    resEl.style.display = 'block';
+    quoteEl.style.display = 'none';
+    fromEl.style.display = 'none';
+    tag.style.display = 'none';
+
+    try {
+      const t0 = performance.now();
+      const resp = await fetch(url, { cache: 'no-store' });
+      const dt = Math.round(performance.now() - t0);
+      const text = await resp.text();
+
+      tag.textContent = (resp.ok ? 'OK ' : 'ERR ') + resp.status + '  ' + dt + 'ms';
+      tag.className = 'status-tag ' + (resp.ok ? 'ok' : 'err');
+      tag.style.display = 'inline-block';
+
+      const encode = document.getElementById('pgEncode').value;
+      if (encode === 'json' && resp.ok) {
+        try {
+          const json = JSON.parse(text);
+          if (json.hitokoto) {
+            quoteEl.className = 'pg-result hitokoto-quote';
+            quoteEl.style.display = 'block';
+            quoteEl.textContent = json.hitokoto;
+            const fromParts = [];
+            if (json.from) fromParts.push('——《' + json.from + '》');
+            if (json.from_who) fromParts.push('  ' + json.from_who);
+            if (fromParts.length) {
+              fromEl.className = 'pg-result hitokoto-from';
+              fromEl.style.display = 'block';
+              fromEl.textContent = fromParts.join('');
+            }
+          }
+          resEl.textContent = JSON.stringify(json, null, 2);
+        } catch (_) { resEl.textContent = text; }
+      } else {
+        resEl.textContent = text;
+      }
+    } catch (e) {
+      resEl.textContent = '请求失败：' + e.message;
+      tag.textContent = 'NETWORK ERROR';
+      tag.className = 'status-tag err';
+      tag.style.display = 'inline-block';
+    }
+  }
+
+  function copyUrl() { copyText(buildAbsoluteUrl(), 'URL 已复制'); }
+  function copyResult() {
+    const t = document.getElementById('pgResult').textContent;
+    if (!t) return;
+    copyText(t, '内容已复制');
+  }
+  function copyText(str, msg) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(str).then(() => showToast(msg));
+    } else {
+      const ta = document.createElement('textarea');
+      ta.value = str; document.body.appendChild(ta);
+      ta.select(); document.execCommand('copy');
+      document.body.removeChild(ta);
+      showToast(msg);
+    }
+  }
+
+  loadCategories();
+</script>
+</body>
+</html>
