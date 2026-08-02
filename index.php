@@ -13,7 +13,15 @@
  *   charset - 字符集（新增）：默认 utf-8
  */
 
-// ========== 0. 无参数时重定向到 HTML 文档界面 ==========
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(204);
+    exit;
+}
+
 $hasApiParams = isset($_GET['form']) || isset($_GET['encode'])
     || isset($_GET['c']) || isset($_GET['charset'])
     || isset($_GET['callback']) || isset($_GET['select'])
@@ -24,7 +32,6 @@ if (!$hasApiParams) {
     exit;
 }
 
-// ========== 1. 参数处理 ==========
 $encode = isset($_GET['encode']) ? strtolower(trim($_GET['encode'])) : null;
 $form = $encode ?? (isset($_GET['form']) ? strtolower(trim($_GET['form'])) : 'text');
 
@@ -50,7 +57,6 @@ if (isset($_GET['c']) && $_GET['c'] !== '') {
 
 $charset = isset($_GET['charset']) ? trim($_GET['charset']) : 'utf-8';
 
-// ========== 2. 数据加载 ==========
 $sentencesDir = __DIR__ . '/sentences';
 if (!is_dir($sentencesDir)) {
     http_response_code(500);
@@ -103,7 +109,6 @@ $creator_uid = $randomItem['creator_uid'] ?? 0;
 $created_at = $randomItem['created_at'] ?? '';
 $length = $randomItem['length'] ?? mb_strlen($hitokoto, 'UTF-8');
 
-// ========== 3. 按格式输出 ==========
 switch ($form) {
     case 'json':
         header('Content-Type: application/json; charset=' . $charset);
