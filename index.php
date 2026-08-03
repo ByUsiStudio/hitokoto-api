@@ -29,7 +29,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-// ========== 0. 无参数时重定向到 HTML 文档界面 ==========
 $hasApiParams = isset($_GET['form']) || isset($_GET['encode'])
     || isset($_GET['c']) || isset($_GET['charset'])
     || isset($_GET['callback']) || isset($_GET['select'])
@@ -40,11 +39,9 @@ if (!$hasApiParams) {
     exit;
 }
 
-// ========== 1. 参数处理 ==========
 $encode = isset($_GET['encode']) ? strtolower(trim($_GET['encode'])) : null;
 $form = $encode ?? (isset($_GET['form']) ? strtolower(trim($_GET['form'])) : 'text');
 
-// 从 templates 目录自动发现支持的格式
 $templateDir = __DIR__ . '/templates';
 $supportedFormats = [];
 foreach (glob($templateDir . '/*.php') as $tplFile) {
@@ -73,7 +70,6 @@ if (isset($_GET['c']) && $_GET['c'] !== '') {
 
 $charset = isset($_GET['charset']) ? trim($_GET['charset']) : 'utf-8';
 
-// ========== 2. 数据加载 ==========
 $sentencesDir = __DIR__ . '/sentences';
 if (!is_dir($sentencesDir)) {
     http_response_code(500);
@@ -126,7 +122,6 @@ $creator_uid = $randomItem['creator_uid'] ?? 0;
 $created_at = $randomItem['created_at'] ?? '';
 $length = $randomItem['length'] ?? mb_strlen($hitokoto, 'UTF-8');
 
-// ========== 3. 元信息（API 地址、开源仓库、开源协议） ==========
 $apiUrl = getApiBaseUrl();
 $repositories = [
     'gitee'    => 'https://gitee.com/byusistudio/hitokoto-api',
@@ -136,6 +131,4 @@ $repositories = [
 $licenseName = 'AGPLv3';
 $licenseUrl  = 'https://www.gnu.org/licenses/agpl-3.0.html';
 
-// ========== 4. 加载对应格式的输出模板 ==========
-// $form 已校验为 templates 目录中存在的合法文件名，可安全包含
 include $templateDir . '/' . $form . '.php';
