@@ -50,8 +50,7 @@
     background: var(--blue-100);
     transition: transform var(--duration) cubic-bezier(.4,0,.2,1);
   }
-  .hero:hover::before { transform: translate(20px,-10px) scale(1.1); }
-  .hero:hover::after  { transform: translate(-20px,20px) scale(1.08); }
+  .hero:hover::before, .hero:hover::after { animation-play-state: paused; }
   .hero > * { position: relative; z-index: 1; }
   .hero-badge {
     display: inline-block; padding: 6px 18px;
@@ -300,6 +299,69 @@
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
   .loading-tip { color: var(--text-muted); font-size: 13px; padding: 12px 4px; }
+
+  html { scroll-behavior: smooth; }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  @keyframes scaleIn {
+    from { opacity: 0; transform: scale(.9); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  /* 装饰圆缓慢漂浮（环境动效，非流光） */
+  @keyframes floatY {
+    0%, 100% { transform: translate(0, 0) rotate(0); }
+    50%      { transform: translate(10px, -18px) rotate(8deg); }
+  }
+  @keyframes floatY2 {
+    0%, 100% { transform: translate(0, 0) rotate(0); }
+    50%      { transform: translate(-12px, 16px) rotate(-6deg); }
+  }
+  @keyframes skeletonPulse {
+    0%, 100% { opacity: .55; }
+    50%      { opacity: 1; }
+  }
+
+  .hero::before, .hero::after { will-change: transform; }
+  .hero::before { animation: floatY 9s ease-in-out infinite; }
+  .hero::after  { animation: floatY2 11s ease-in-out infinite; }
+
+  /* Hero 入场错峰 */
+  .hero-badge    { animation: fadeInUp var(--duration) cubic-bezier(.4,0,.2,1) both; animation-delay: 80ms; }
+  .hero-title    { animation: fadeInUp var(--duration) cubic-bezier(.4,0,.2,1) both; animation-delay: 180ms; }
+  .hero-subtitle { animation: fadeInUp var(--duration) cubic-bezier(.4,0,.2,1) both; animation-delay: 280ms; }
+  .hero-actions  { animation: fadeInUp var(--duration) cubic-bezier(.4,0,.2,1) both; animation-delay: 380ms; }
+
+  /* 滚动入场 */
+  .reveal {
+    opacity: 0; transform: translateY(28px);
+    transition: opacity .7s cubic-bezier(.4,0,.2,1), transform .7s cubic-bezier(.4,0,.2,1);
+  }
+  .reveal.is-visible { opacity: 1; transform: translateY(0); }
+
+  /* 按压触感反馈 */
+  .btn:active, .btn-copy:active { transform: scale(.96); }
+  .cat-card:active { transform: translateY(-2px) scale(.985); }
+  .pg-cat-chip:active { transform: scale(.94); }
+
+  .status-tag { animation: scaleIn .35s cubic-bezier(.4,0,.2,1) both; }
+
+  .loading-tip { animation: skeletonPulse 1.4s ease-in-out infinite; }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      animation: none !important;
+      transition: none !important;
+    }
+    .reveal { opacity: 1; transform: none; }
+  }
 
   @media (max-width: 640px) {
     .hero { padding: 40px 24px; }
@@ -556,8 +618,8 @@
 
   function renderCategoryCards() {
     const grid = document.getElementById('catGrid');
-    grid.innerHTML = CATEGORIES.map((c) => `
-      <div class="cat-card" data-key="${escapeHtml(c.key)}" onclick="jumpToCat('${escapeHtml(c.key)}')">
+    grid.innerHTML = CATEGORIES.map((c, i) => `
+      <div class="cat-card" data-key="${escapeHtml(c.key)}" style="animation:fadeInUp .5s cubic-bezier(.4,0,.2,1) both; animation-delay:${i * 55}ms;" onclick="jumpToCat('${escapeHtml(c.key)}')">
         <div class="cat-key">${escapeHtml(String(c.key).toUpperCase())}</div>
         <div class="cat-name">${escapeHtml(c.name)}</div>
         <div class="cat-desc">${escapeHtml(c.desc || '')}</div>
@@ -685,6 +747,7 @@
       tag.textContent = (resp.ok ? 'OK ' : 'ERR ') + resp.status + '  ' + dt + 'ms';
       tag.className = 'status-tag ' + (resp.ok ? 'ok' : 'err');
       tag.style.display = 'inline-block';
+      playAnim(tag);
 
       const encode = document.getElementById('pgEncode').value;
       if (encode === 'json' && resp.ok) {
@@ -694,6 +757,7 @@
             quoteEl.className = 'pg-result hitokoto-quote';
             quoteEl.style.display = 'block';
             quoteEl.textContent = json.hitokoto;
+            playAnim(quoteEl, 'fadeIn .45s ease both');
             const fromParts = [];
             if (json.from) fromParts.push('——《' + json.from + '》');
             if (json.from_who) fromParts.push('  ' + json.from_who);
@@ -701,18 +765,23 @@
               fromEl.className = 'pg-result hitokoto-from';
               fromEl.style.display = 'block';
               fromEl.textContent = fromParts.join('');
+              playAnim(fromEl, 'fadeIn .5s ease both');
             }
           }
           resEl.textContent = JSON.stringify(json, null, 2);
-        } catch (_) { resEl.textContent = text; }
+          playAnim(resEl, 'fadeIn .45s ease both');
+        } catch (_) { resEl.textContent = text; playAnim(resEl, 'fadeIn .45s ease both'); }
       } else {
         resEl.textContent = text;
+        playAnim(resEl, 'fadeIn .45s ease both');
       }
     } catch (e) {
       resEl.textContent = '请求失败：' + e.message;
+      playAnim(resEl, 'fadeIn .45s ease both');
       tag.textContent = 'NETWORK ERROR';
       tag.className = 'status-tag err';
       tag.style.display = 'inline-block';
+      playAnim(tag);
     }
   }
 
@@ -733,6 +802,44 @@
       showToast(msg);
     }
   }
+
+  // ===== 动画辅助：重放元素动画 =====
+  function playAnim(el, name) {
+    if (!el) return;
+    el.style.animation = 'none';
+    void el.offsetWidth;
+    el.style.animation = name || '';
+  }
+
+  // ===== 滚动入场（IntersectionObserver） =====
+  (function setupReveal() {
+    document.querySelectorAll('.section').forEach((sec) => {
+      sec.querySelectorAll(':scope > *').forEach((el, i) => {
+        // cat-grid 与 examples 由其子元素自带入场动画，跳过避免双重动画
+        if (el.classList.contains('cat-grid') || el.classList.contains('examples')) return;
+        el.classList.add('reveal');
+        el.style.transitionDelay = (i * 90) + 'ms';
+      });
+    });
+    document.querySelectorAll('.example-card').forEach((el, i) => {
+      el.classList.add('reveal');
+      el.style.transitionDelay = (i * 80) + 'ms';
+    });
+    const reveals = document.querySelectorAll('.reveal');
+    if (!('IntersectionObserver' in window)) {
+      reveals.forEach((el) => el.classList.add('is-visible'));
+      return;
+    }
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (e.isIntersecting) {
+          e.target.classList.add('is-visible');
+          io.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -6% 0px' });
+    reveals.forEach((el) => io.observe(el));
+  })();
 
   fillExampleUrls();
   updateUrlPreview();
