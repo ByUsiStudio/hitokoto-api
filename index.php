@@ -36,7 +36,7 @@ $hasApiParams = isset($_GET['form']) || isset($_GET['encode'])
     || isset($_GET['min_length']) || isset($_GET['max_length']);
 
 if (!$hasApiParams) {
-    header('Location: ./docs/', true, 302);
+    header('Location: ./docs.html', true, 302);
     exit;
 }
 
