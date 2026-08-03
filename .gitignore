@@ -102,3 +102,7 @@ dist
 
 # TernJS port file
 .tern-port
+
+# VitePress 文档构建产物（部署为 ./docs/，由开发机构建后上传）
+/docs/
+docs-src/.vitepress/cache/

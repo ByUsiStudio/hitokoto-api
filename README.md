@@ -15,8 +15,8 @@
 - **模板可扩展** —— 每种输出格式对应 `templates/` 下一个独立文件，支持的格式列表由目录自动发现，新增格式只需新增模板文件。
 - **灵活筛选** —— 支持单分类或多分类组合随机，参数向下兼容原一言协议。
 - **性能优化** —— 先随机选定分类，再按需加载对应 JSON 文件，避免一次性载入全部数据。
-- **内置文档界面** —— 无参数访问时自动重定向至 `docs.html`，提供分类预览、参数说明与在线测试 Playground。
-- **子路径友好** —— 所有资源均使用相对路径，可部署在域名根目录或子路径（如 `/yy/`）。
+- **内置文档界面** —— 基于 VitePress + vitepress-plugin-tabs 构建，无参数访问时自动重定向至 `./docs/`，提供分类预览、参数说明、多格式标签页示例与在线测试 Playground。
+- **子路径友好** —— API 与文档资源均使用相对路径，VitePress 以 `base: './'` 构建，可部署在域名根目录或任意子路径（如 `/yy/`），同一份构建产物无需重新构建。
 
 ---
 
@@ -24,11 +24,18 @@
 
 ```
 hitokoto/
-├── index.php            # API 入口（参数处理、数据加载、元信息准备、模板分发）
-├── docs.html            # HTML 文档界面 + 在线测试 Playground
+├── index.php            # API 入口（参数处理、数据加载、元信息准备、模板分发；无参数时 302 至 ./docs/）
 ├── categories.json      # 分类元数据（名称、描述、key、路径）
 ├── LICENSE              # AGPL-3.0 协议
 ├── README.md            # 本文件
+├── package.json         # 文档构建脚本与依赖（vitepress / vitepress-plugin-tabs / vue）
+├── docs/                # VitePress 构建产物（gitignored，部署为 ./docs/）
+├── docs-src/            # VitePress 文档源码
+│   ├── .vitepress/
+│   │   ├── config.ts    # base:'./' / cleanUrls:false / outDir:'../docs' / tabs 插件
+│   │   └── theme/       # 主题定制（蓝黄配色）+ Playground.vue / CategoryGrid.vue 组件
+│   ├── index.md         # 单页文档源（hero + 分类 + 参数 + 格式示例 tabs + 在线测试）
+│   └── router.php       # dev-only：给 .json 加 CORS 头（不部署）
 ├── lib/
 │   └── helpers.php      # 共享辅助函数（JSON 编码、API 基址、Shell/PS1 转义）
 ├── templates/           # 输出格式模板（每格式一个文件，自动发现）
@@ -68,17 +75,32 @@ hitokoto/
 
 ### 部署方式
 
-1. 将整个目录上传至 Web 服务器的站点根目录（或子目录）。
-2. 确保 `sentences/` 与 `templates/` 目录及其下文件可被 PHP 读取。
-3. 访问 `https://your-domain/` 即可看到文档界面，或直接调用 API。
+1. **构建文档**（需 Node.js ≥ 18，仅在开发机执行一次）：在项目根运行 `npm install` 与 `npm run docs:build`，产物生成在 `docs/`。
+2. 将 `index.php`、`categories.json`、`lib/`、`templates/`、`sentences/` 与构建出的 `docs/` 一起上传至 Web 服务器（站点根目录或子目录均可）。
+3. 确保 `sentences/` 与 `templates/` 目录及其下文件可被 PHP 读取。
+4. 访问 `https://your-domain/` 即会 302 跳转至文档界面，或直接调用 API。
 
-### 本地预览（PHP 内置服务器）
+> `docs/` 是 VitePress 构建产物（已 gitignore），同一份产物可部署到根目录或任意子路径而无需重新构建。
+
+### 本地预览
+
+API（PHP 内置服务器）+ 文档（VitePress dev）联调：
 
 ```bash
-php -S 127.0.0.1:8080 -t .
+# 终端 A：API（用 router.php 给 .json 补 CORS 头，供 5173 跨域 fetch）
+php -S 127.0.0.1:8080 docs-src/router.php -t .
+
+# 终端 B：文档开发模式
+npm install
+npm run docs:dev      # http://localhost:5173/
 ```
 
-浏览器打开 `http://127.0.0.1:8080/` 即可。
+文档构建预览（产物在 `docs/`）：
+
+```bash
+npm run docs:build
+npm run docs:preview  # http://localhost:4173/
+```
 
 ---
 
@@ -445,16 +467,23 @@ echo "$HITOKOTO —— $HITOKOTO_FROM"
 
 ## 文档界面
 
-项目内置一个可视化文档界面 `docs.html`，提供：
+项目内置一个基于 **VitePress + vitepress-plugin-tabs** 的可视化文档站点，源码位于 `docs-src/`，构建产物位于 `docs/`（部署为 `./docs/`），提供：
 
-- 分类卡片预览与实时句子数统计
-- 参数说明表
-- 调用示例展示（含 text / json / xml / ini / sh / js 等场景）
-- 在线测试 Playground（支持全部 10 种格式 / 字符集 / 分类筛选，实时预览请求 URL 与响应结果）
+- 分类卡片预览与实时句子数统计（`CategoryGrid` 组件）
+- 参数说明表与元信息说明
+- 10 种输出格式示例（`vitepress-plugin-tabs` 标签页展示）
+- 在线测试 Playground（`Playground` 组件，支持全部 10 种格式 / 字符集 / 分类筛选，实时预览请求 URL 与响应结果）
 
-文档界面会根据当前请求地址自动计算 API 基础地址并填充示例与 Playground，因此无论部署在根目录还是子路径均能正确显示。
+文档界面在客户端根据当前地址自动计算 API 基址（取文档所在目录的上一级，即 `index.php` 所在目录），因此无论部署在根目录还是任意子路径均能正确显示与请求。VitePress 以 `base: './'` 构建，所有资源为相对路径，同一份产物可部署到任意子路径而无需重新构建。
 
-直接访问站点根目录即可进入。
+### 构建文档
+
+```bash
+npm install
+npm run docs:build
+```
+
+将 `docs/` 内容上传至服务器 `docs/` 目录即可。直接访问站点根目录会 302 跳转至 `./docs/`。
 
 ---
 
