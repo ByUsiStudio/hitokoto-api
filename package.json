@@ -2,6 +2,7 @@
   "name": "hitokoto-docs",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "description": "ByUsi Studio · 一言 API —— VitePress 文档源",
   "scripts": {
     "docs:dev": "vitepress dev docs-src",
