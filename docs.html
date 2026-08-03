@@ -353,13 +353,13 @@
               <td><span class="param-name">form</span></td>
               <td>string</td>
               <td><span class="param-default">text</span></td>
-              <td><b>（保留原有）</b> 输出格式。可选值：<code>text</code> / <code>json</code> / <code>xml</code> / <code>ini</code></td>
+              <td><b>（保留原有）</b> 输出格式。可选值：<code>text</code> / <code>json</code> / <code>json5</code> / <code>xml</code> / <code>ini</code> / <code>toml</code> / <code>js</code> / <code>sh</code> / <code>bat</code> / <code>ps1</code></td>
             </tr>
             <tr>
               <td><span class="param-name">encode</span></td>
               <td>string</td>
               <td>&mdash;</td>
-              <td><b>（新增）</b> 输出格式别名，优先级高于 <code>form</code>，便于与其他一言服务兼容。</td>
+              <td><b>（新增）</b> 输出格式别名，优先级高于 <code>form</code>，便于与其他一言服务兼容。支持与 <code>form</code> 相同的全部 10 种格式。</td>
             </tr>
             <tr>
               <td><span class="param-name">c</span></td>
@@ -375,6 +375,12 @@
             </tr>
           </tbody>
         </table>
+        <p style="margin-top:18px; padding:14px 16px; background:var(--blue-50); border-radius:10px; font-size:13px; color:var(--text-secondary);">
+          <b style="color:var(--blue-500);">元信息说明：</b>
+          除 <code>text</code> 格式仅返回一言内容外，其余 9 种格式都会在响应中包含
+          <b>API 地址</b>（<code>api</code>）、<b>开源仓库地址</b>（<code>repository</code>，含 gitee / github / codeberg）与
+          <b>开源协议</b>（<code>license: AGPLv3</code>，<code>license_url</code>）。
+        </p>
       </div>
     </div>
   </section>
@@ -397,13 +403,17 @@
 
 <span class="c-com">// Response (application/json)</span>
 {
-  <span class="c-prop">"hitokoto"</span>: <span class="c-str">"你不会死的，因为我会保护你。"</span>,
-  <span class="c-prop">"message"</span>:  <span class="c-str">"你不会死的，因为我会保护你。"</span>, <span class="c-com">// 兼容旧版</span>
-  <span class="c-prop">"type"</span>:      <span class="c-str">"a"</span>,
-  <span class="c-prop">"from"</span>:      <span class="c-str">"EVA"</span>,
-  <span class="c-prop">"from_who"</span>:  <span class="c-punc">null</span>,
-  <span class="c-prop">"creator"</span>:   <span class="c-str">"绫波丽"</span>,
-  <span class="c-prop">"length"</span>:    <span class="c-num">14</span>
+  <span class="c-prop">"hitokoto"</span>:   <span class="c-str">"你不会死的，因为我会保护你。"</span>,
+  <span class="c-prop">"message"</span>:    <span class="c-str">"你不会死的，因为我会保护你。"</span>, <span class="c-com">// 兼容旧版</span>
+  <span class="c-prop">"type"</span>:        <span class="c-str">"a"</span>,
+  <span class="c-prop">"from"</span>:        <span class="c-str">"EVA"</span>,
+  <span class="c-prop">"from_who"</span>:    <span class="c-punc">null</span>,
+  <span class="c-prop">"creator"</span>:     <span class="c-str">"绫波丽"</span>,
+  <span class="c-prop">"length"</span>:      <span class="c-num">14</span>,
+  <span class="c-prop">"api"</span>:         <span class="c-str">"https://your-domain/"</span>,
+  <span class="c-prop">"repository"</span>:  { <span class="c-prop">"github"</span>: <span class="c-str">"https://github.com/ByUsiStudio/hitokoto-api"</span>, <span class="c-com">/* ... */</span> },
+  <span class="c-prop">"license"</span>:     <span class="c-str">"AGPLv3"</span>,
+  <span class="c-prop">"license_url"</span>: <span class="c-str">"https://www.gnu.org/licenses/agpl-3.0.html"</span>
 }</pre>
       </div>
       <div class="card example-card">
@@ -415,6 +425,30 @@
         <div class="example-title">示例 4：INI 格式 + 诗词 + 网易云</div>
         <div class="example-desc">适合 ini 解析场景。</div>
 <pre class="code"><span class="c-uri">GET <span class="api-base"></span>?<span class="c-key">form</span>=<span class="c-str">ini</span>&amp;<span class="c-key">c</span>=<span class="c-str">i,j</span></span></pre>
+      </div>
+      <div class="card example-card">
+        <div class="example-title">示例 5：SH 格式（Shell 变量）</div>
+        <div class="example-desc">可直接 <code>eval</code> 用于 Shell 脚本。</div>
+<pre class="code"><span class="c-uri">GET <span class="api-base"></span>?<span class="c-key">encode</span>=<span class="c-str">sh</span></span>
+
+<span class="c-com"># Response (application/x-sh)</span>
+<span class="c-key">HITOKOTO</span>=<span class="c-str">'樱花飘落的速度，是每秒五厘米哦。'</span>
+<span class="c-key">HITOKOTO_FROM</span>=<span class="c-str">'秒速五厘米'</span>
+<span class="c-key">API_URL</span>=<span class="c-str">'https://your-domain/'</span>
+<span class="c-key">LICENSE</span>=<span class="c-str">'AGPLv3'</span></pre>
+      </div>
+      <div class="card example-card">
+        <div class="example-title">示例 6：JS 格式（变量赋值）</div>
+        <div class="example-desc">前端可通过 <code>&lt;script src&gt;</code> 直接引入并读取 <code>hitokoto</code> 变量。</div>
+<pre class="code"><span class="c-uri">GET <span class="api-base"></span>?<span class="c-key">encode</span>=<span class="c-str">js</span>&amp;<span class="c-key">c</span>=<span class="c-str">a</span></span>
+
+<span class="c-com">// Response (text/javascript)</span>
+<span class="c-key">var hitokoto</span> = {
+  <span class="c-prop">hitokoto</span>: <span class="c-str">"你不会死的，因为我会保护你。"</span>,
+  <span class="c-prop">from</span>:    <span class="c-str">"EVA"</span>,
+  <span class="c-prop">api</span>:     <span class="c-str">"https://your-domain/"</span>,
+  <span class="c-prop">license</span>: <span class="c-str">"AGPLv3"</span>
+};</pre>
       </div>
     </div>
   </section>
@@ -428,8 +462,14 @@
           <select id="pgEncode">
             <option value="json">JSON（完整信息）</option>
             <option value="text">TEXT（仅一言）</option>
+            <option value="json5">JSON5（带注释）</option>
             <option value="xml">XML</option>
             <option value="ini">INI</option>
+            <option value="toml">TOML</option>
+            <option value="js">JS（变量赋值）</option>
+            <option value="sh">SH（Shell 变量）</option>
+            <option value="bat">BAT（批处理变量）</option>
+            <option value="ps1">PS1（PowerShell 变量）</option>
           </select>
         </div>
         <div class="pg-field">

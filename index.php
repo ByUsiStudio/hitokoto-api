@@ -1,17 +1,24 @@
-﻿<?php
+<?php
 /**
  * 随机一言 API
- * 支持格式: json, text, xml, ini
  * 支持分类: a, b, c, d, e, f, g, h, i, j, k, l
  *
  * 参数说明（保留原有 + 新增）：
  *   form    - 输出格式（原有）：json | text（默认）| xml | ini
- *   encode  - 输出格式（新增，别名，优先级高于 form）
+ *   encode  - 输出格式（新增，别名，优先级高于 form），额外支持：json5 | toml | js | sh | bat | ps1
  *   c       - 分类筛选（新增）：单个分类如 ?c=a ，多个分类用逗号分隔如 ?c=a,b,c
  *             可选值：a(动画) b(漫画) c(游戏) d(文学) e(原创) f(网络)
  *                     g(其他) h(影视) i(诗词) j(网易云) k(哲学) l(抖机灵)
  *   charset - 字符集（新增）：默认 utf-8
+ *
+ * 输出模板位于 templates/ 目录，每个格式一个独立文件；新增格式只需新增模板文件，
+ * 支持的格式列表会自动从该目录发现。
+ *
+ * 元信息说明：
+ *   除 text 格式外，所有格式都会返回 API 地址、开源仓库地址与开源协议（AGPLv3）。
  */
+
+require __DIR__ . '/lib/helpers.php';
 
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
@@ -22,6 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
+// ========== 0. 无参数时重定向到 HTML 文档界面 ==========
 $hasApiParams = isset($_GET['form']) || isset($_GET['encode'])
     || isset($_GET['c']) || isset($_GET['charset'])
     || isset($_GET['callback']) || isset($_GET['select'])
@@ -32,10 +40,18 @@ if (!$hasApiParams) {
     exit;
 }
 
+// ========== 1. 参数处理 ==========
 $encode = isset($_GET['encode']) ? strtolower(trim($_GET['encode'])) : null;
 $form = $encode ?? (isset($_GET['form']) ? strtolower(trim($_GET['form'])) : 'text');
 
-$supportedFormats = ['json', 'text', 'xml', 'ini'];
+// 从 templates 目录自动发现支持的格式
+$templateDir = __DIR__ . '/templates';
+$supportedFormats = [];
+foreach (glob($templateDir . '/*.php') as $tplFile) {
+    $supportedFormats[] = basename($tplFile, '.php');
+}
+sort($supportedFormats);
+
 if (!in_array($form, $supportedFormats, true)) {
     http_response_code(400);
     header('Content-Type: application/json; charset=utf-8');
@@ -57,6 +73,7 @@ if (isset($_GET['c']) && $_GET['c'] !== '') {
 
 $charset = isset($_GET['charset']) ? trim($_GET['charset']) : 'utf-8';
 
+// ========== 2. 数据加载 ==========
 $sentencesDir = __DIR__ . '/sentences';
 if (!is_dir($sentencesDir)) {
     http_response_code(500);
@@ -109,65 +126,16 @@ $creator_uid = $randomItem['creator_uid'] ?? 0;
 $created_at = $randomItem['created_at'] ?? '';
 $length = $randomItem['length'] ?? mb_strlen($hitokoto, 'UTF-8');
 
-switch ($form) {
-    case 'json':
-        header('Content-Type: application/json; charset=' . $charset);
-        $response = [
-            'id' => $randomItem['id'] ?? null,
-            'uuid' => $randomItem['uuid'] ?? null,
-            'hitokoto' => $hitokoto,
-            'message' => $hitokoto,
-            'type' => $type,
-            'from' => $from,
-            'from_who' => $from_who,
-            'creator' => $creator,
-            'creator_uid' => $creator_uid,
-            'reviewer' => $randomItem['reviewer'] ?? null,
-            'commit_from' => $randomItem['commit_from'] ?? null,
-            'created_at' => $created_at,
-            'length' => $length,
-        ];
-        echo json_encode($response, JSON_UNESCAPED_UNICODE);
-        break;
+// ========== 3. 元信息（API 地址、开源仓库、开源协议） ==========
+$apiUrl = getApiBaseUrl();
+$repositories = [
+    'gitee'    => 'https://gitee.com/byusistudio/hitokoto-api',
+    'github'   => 'https://github.com/ByUsiStudio/hitokoto-api',
+    'codeberg' => 'https://codeberg.org/ByUsiStudio/hitokoto-api',
+];
+$licenseName = 'AGPLv3';
+$licenseUrl  = 'https://www.gnu.org/licenses/agpl-3.0.html';
 
-    case 'xml':
-        header('Content-Type: text/xml; charset=' . $charset);
-        echo '<?xml version="1.0" encoding="' . strtoupper($charset) . '"?>' . "\n";
-        echo '<response>';
-        echo '<id>' . htmlspecialchars($randomItem['id'] ?? '', ENT_XML1) . '</id>';
-        echo '<uuid>' . htmlspecialchars($randomItem['uuid'] ?? '', ENT_XML1) . '</uuid>';
-        echo '<hitokoto><![CDATA[' . $hitokoto . ']]></hitokoto>';
-        echo '<message><![CDATA[' . $hitokoto . ']]></message>';
-        echo '<type>' . htmlspecialchars($type, ENT_XML1) . '</type>';
-        echo '<from>' . htmlspecialchars($from, ENT_XML1) . '</from>';
-        echo '<from_who>' . htmlspecialchars($from_who ?? '', ENT_XML1) . '</from_who>';
-        echo '<creator>' . htmlspecialchars($creator, ENT_XML1) . '</creator>';
-        echo '<created_at>' . htmlspecialchars($created_at, ENT_XML1) . '</created_at>';
-        echo '<length>' . $length . '</length>';
-        echo '</response>';
-        break;
-
-    case 'ini':
-        header('Content-Type: text/plain; charset=' . $charset);
-        echo "; Random Hitokoto API\n";
-        echo "; Category: " . $type . "\n";
-        echo "[hitokoto]\n";
-        echo "content = " . $hitokoto . "\n";
-        echo "[quote]\n";
-        echo "content = " . $hitokoto . "\n";
-        echo "[meta]\n";
-        echo "type = " . $type . "\n";
-        echo "from = " . $from . "\n";
-        echo "from_who = " . ($from_who ?? '') . "\n";
-        echo "creator = " . $creator . "\n";
-        echo "created_at = " . $created_at . "\n";
-        echo "length = " . $length . "\n";
-        break;
-
-    case 'text':
-    default:
-        header('Content-Type: text/plain; charset=' . $charset);
-        echo $hitokoto;
-        break;
-}
-
+// ========== 4. 加载对应格式的输出模板 ==========
+// $form 已校验为 templates 目录中存在的合法文件名，可安全包含
+include $templateDir . '/' . $form . '.php';
