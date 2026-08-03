@@ -18,4 +18,4 @@ if ($uri !== null && str_ends_with($uri, '.json')) {
         return true;
     }
 }
-return false; // 交还 PHP 内置服务器的静态处理器
+return false;
