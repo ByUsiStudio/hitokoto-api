@@ -664,7 +664,7 @@
   async function loadStatsInBackground() {
     const tasks = CATEGORIES.map(async (c) => {
       try {
-        const resp = await fetch('./sentences/' + encodeURIComponent(c.key) + '.json', { cache: 'no-cache' });
+        const resp = await fetch('./sentences-bundle/sentences/' + encodeURIComponent(c.key) + '.json', { cache: 'no-cache' });
         if (!resp.ok) throw new Error('HTTP ' + resp.status);
         const data = await resp.json();
         const count = Array.isArray(data) ? data.length : 0;
