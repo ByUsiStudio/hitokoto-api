@@ -70,7 +70,7 @@ if (isset($_GET['c']) && $_GET['c'] !== '') {
 
 $charset = isset($_GET['charset']) ? trim($_GET['charset']) : 'utf-8';
 
-$sentencesDir = __DIR__ . '/sentences';
+$sentencesDir = __DIR__ . '/sentences-bundle/sentences';
 if (!is_dir($sentencesDir)) {
     http_response_code(500);
     header('Content-Type: application/json; charset=utf-8');

@@ -457,20 +457,30 @@
       </div>
       <div class="card example-card">
         <div class="example-title">示例 2：JSON 格式 + 指定分类</div>
-        <div class="example-desc">返回完整元数据。</div>
+        <div class="example-desc">返回完整元数据，包括 uuid、creator_uid、reviewer、commit_from 等字段。</div>
 <pre class="code"><span class="c-uri">GET <span class="api-base"></span>?<span class="c-key">encode</span>=<span class="c-str">json</span>&amp;<span class="c-key">c</span>=<span class="c-str">a</span></span>
 
 <span class="c-com">// Response (application/json)</span>
 {
-  <span class="c-prop">"hitokoto"</span>:   <span class="c-str">"你不会死的，因为我会保护你。"</span>,
-  <span class="c-prop">"message"</span>:    <span class="c-str">"你不会死的，因为我会保护你。"</span>, <span class="c-com">// 兼容旧版</span>
+  <span class="c-prop">"id"</span>:           <span class="c-num">1</span>,
+  <span class="c-prop">"uuid"</span>:        <span class="c-str">"9818ecda-9cbf-4f2a-9af8-8136ef39cfcd"</span>,
+  <span class="c-prop">"hitokoto"</span>:    <span class="c-str">"与众不同的生活方式很累人呢，因为找不到借口。"</span>,
+  <span class="c-prop">"message"</span>:     <span class="c-str">"与众不同的生活方式很累人呢，因为找不到借口。"</span>, <span class="c-com">// 兼容旧版</span>
   <span class="c-prop">"type"</span>:        <span class="c-str">"a"</span>,
-  <span class="c-prop">"from"</span>:        <span class="c-str">"EVA"</span>,
+  <span class="c-prop">"from"</span>:        <span class="c-str">"幸运星"</span>,
   <span class="c-prop">"from_who"</span>:    <span class="c-punc">null</span>,
-  <span class="c-prop">"creator"</span>:     <span class="c-str">"绫波丽"</span>,
-  <span class="c-prop">"length"</span>:      <span class="c-num">14</span>,
+  <span class="c-prop">"creator"</span>:     <span class="c-str">"跳舞的果果"</span>,
+  <span class="c-prop">"creator_uid"</span>: <span class="c-num">0</span>,
+  <span class="c-prop">"reviewer"</span>:    <span class="c-num">0</span>,
+  <span class="c-prop">"commit_from"</span>: <span class="c-str">"web"</span>,
+  <span class="c-prop">"created_at"</span>:  <span class="c-str">"1468605909"</span>,
+  <span class="c-prop">"length"</span>:      <span class="c-num">22</span>,
   <span class="c-prop">"api"</span>:         <span class="c-str">"https://your-domain/"</span>,
-  <span class="c-prop">"repository"</span>:  { <span class="c-prop">"github"</span>: <span class="c-str">"https://github.com/ByUsiStudio/hitokoto-api"</span>, <span class="c-com">/* ... */</span> },
+  <span class="c-prop">"repository"</span>:  {
+    <span class="c-prop">"gitee"</span>:    <span class="c-str">"https://gitee.com/byusistudio/hitokoto-api"</span>,
+    <span class="c-prop">"github"</span>:   <span class="c-str">"https://github.com/ByUsiStudio/hitokoto-api"</span>,
+    <span class="c-prop">"codeberg"</span>: <span class="c-str">"https://codeberg.org/ByUsiStudio/hitokoto-api"</span>
+  },
   <span class="c-prop">"license"</span>:     <span class="c-str">"AGPLv3"</span>,
   <span class="c-prop">"license_url"</span>: <span class="c-str">"https://www.gnu.org/licenses/agpl-3.0.html"</span>
 }</pre>
@@ -596,20 +606,46 @@
     setTimeout(() => t.classList.remove('show'), 1800);
   }
 
+  // 内置分类数据（与 categories.json 保持同步），作为加载失败时的兜底
+  const BUILTIN_CATEGORIES = [
+    { key: 'a', name: '动画', desc: 'Anime - 动画' },
+    { key: 'b', name: '漫画', desc: 'Comic - 漫画' },
+    { key: 'c', name: '游戏', desc: 'Game - 游戏' },
+    { key: 'd', name: '文学', desc: 'Literature - 文学。主要收录现代文学：小说、散文、戏剧。' },
+    { key: 'e', name: '原创', desc: 'Original - 原创' },
+    { key: 'f', name: '网络', desc: 'Internet - 来自网络' },
+    { key: 'g', name: '其他', desc: 'Other - 其他' },
+    { key: 'h', name: '影视', desc: 'Video - 影视' },
+    { key: 'i', name: '诗词', desc: 'Poem - 诗词。主要收录中国古代文学，如：诗、歌、词、赋、曲等。' },
+    { key: 'j', name: '网易云', desc: 'NCM - 网易云。主要收录网易云音乐热评。' },
+    { key: 'k', name: '哲学', desc: 'Philosophy - 哲学' },
+    { key: 'l', name: '抖机灵', desc: 'Funny - 抖机灵' }
+  ];
+
   async function loadCategories() {
+    let loadedFromNetwork = false;
     try {
       const resp = await fetch('./categories.json', { cache: 'no-cache' });
       if (!resp.ok) throw new Error('HTTP ' + resp.status);
-      CATEGORIES = await resp.json();
-      if (!Array.isArray(CATEGORIES)) throw new Error('categories.json 不是数组');
+      const data = await resp.json();
+      if (!Array.isArray(data)) throw new Error('categories.json 不是数组');
+      CATEGORIES = data;
+      loadedFromNetwork = true;
     } catch (e) {
-      document.getElementById('catGrid').innerHTML =
-        '<div class="loading-tip">加载 categories.json 失败：' + escapeHtml(e.message) + '</div>';
-      return;
+      // 网络加载失败（file:// 协议、跨域、离线等）时，使用内置数据兜底
+      CATEGORIES = BUILTIN_CATEGORIES;
     }
     renderCategoryCards();
-    renderPigCats();
-    loadStatsInBackground();
+    renderPgCats();
+    if (loadedFromNetwork) {
+      loadStatsInBackground();
+    } else {
+      // 无法访问 sentences/*.json，跳过统计，但保留 Playground 可用性
+      document.querySelectorAll('.cat-stat').forEach((el) => {
+        el.textContent = '离线预览';
+        el.style.opacity = '0.7';
+      });
+    }
     updateUrlPreview();
   }
 
@@ -644,7 +680,7 @@
     await Promise.all(tasks);
   }
 
-  function renderPigCats() {
+  function renderPgCats() {
     const wrap = document.getElementById('pgCats');
     wrap.innerHTML = CATEGORIES.map((c) => `
       <label class="pg-cat-chip" data-key="${escapeHtml(c.key)}" onclick="toggleCat('${escapeHtml(c.key)}', this)">
@@ -670,10 +706,26 @@
     setTimeout(runTest, 520);
   }
 
+  /**
+   * 推断 API 基址（index.php 所在目录）。
+   * - 若 docs.html 与 index.php 同级：返回当前目录。
+   * - 若 docs.html 位于子目录（如 /docs/，由 index.php 302 跳转而来）：返回父目录。
+   * - 若通过 file:// 直接打开（origin = 'null'）：返回字符串 './'，后续 fetch 仍能相对路径访问。
+   */
   function getApiBase() {
-    const path = location.pathname;
-    const dir = path.substring(0, path.lastIndexOf('/') + 1);
-    return location.origin + dir;
+    const origin = location.origin;
+    const path = location.pathname || '/';
+    // 去除末尾文件名（docs.html / index.html），保留目录
+    let dir = path.substring(0, path.lastIndexOf('/') + 1);
+    // 若位于 /docs/ 或 /docs-src/ 子目录，则 API 位于其父目录
+    if (/\/docs(?:-src)?\/?$/.test(dir)) {
+      dir = dir.replace(/\/docs(?:-src)?\/?$/, '/');
+    }
+    if (origin === 'null' || !origin) {
+      // file:// 协议下 origin 为 "null"，退化为相对路径
+      return dir;
+    }
+    return origin + dir;
   }
 
   function buildParams() {
@@ -717,9 +769,58 @@
     const resEl = document.getElementById('pgResult');
     resEl.textContent = '点击「发送请求」开始体验';
     resEl.style.display = 'block';
-    document.getElementById('pgQuote').style.display = 'none';
-    document.getElementById('pgFrom').style.display = 'none';
+    document.getElementById('pgQuote').style.cssText = 'display:none;';
+    document.getElementById('pgFrom').style.cssText = 'display:none;';
     document.getElementById('pgStatus').style.display = 'none';
+  }
+
+  // 离线兜底 mock 响应（当 fetch 失败时，保证预览可用）
+  const OFFLINE_MOCK = {
+    json: {
+      id: 1, uuid: '9818ecda-9cbf-4f2a-9af8-8136ef39cfcd',
+      hitokoto: '与众不同的生活方式很累人呢，因为找不到借口。',
+      message: '与众不同的生活方式很累人呢，因为找不到借口。',
+      type: 'a', from: '幸运星', from_who: null, creator: '跳舞的果果',
+      creator_uid: 0, reviewer: 0, commit_from: 'web',
+      created_at: '1468605909', length: 22,
+      api: location.origin + '/',
+      repository: {
+        gitee: 'https://gitee.com/byusistudio/hitokoto-api',
+        github: 'https://github.com/ByUsiStudio/hitokoto-api',
+        codeberg: 'https://codeberg.org/ByUsiStudio/hitokoto-api'
+      },
+      license: 'AGPLv3',
+      license_url: 'https://www.gnu.org/licenses/agpl-3.0.html'
+    }
+  };
+
+  /** 用 TextDecoder 按指定字符集解码原始字节；返回 { text, charsetUsed } */
+  async function decodeResponse(resp, fallbackCharset) {
+    // 从 Content-Type 中解析实际字符集（服务器可能强制指定 charset）
+    const ct = resp.headers.get('content-type') || '';
+    let charset = null;
+    const m = ct.match(/charset=([^;]+)/i);
+    if (m) charset = m[1].trim().toLowerCase().replace(/^"/, '').replace(/"$/, '');
+    if (!charset) charset = (fallbackCharset || 'utf-8').toLowerCase();
+    // 统一别名到 TextDecoder 支持的 label
+    const label = ({ gbk: 'gbk', gb2312: 'gbk', gb18030: 'gbk' }[charset] || charset);
+    const buf = await resp.arrayBuffer();
+    try {
+      const decoder = new TextDecoder(label, { fatal: false });
+      return { text: decoder.decode(buf), charsetUsed: label };
+    } catch (_) {
+      // 浏览器不支持该 charset 时回退到 UTF-8
+      const decoder = new TextDecoder('utf-8', { fatal: false });
+      return { text: decoder.decode(buf), charsetUsed: 'utf-8 (fallback)' };
+    }
+  }
+
+  function tryPrettyJSON(text) {
+    try {
+      return { ok: true, value: JSON.parse(text) };
+    } catch {
+      return { ok: false };
+    }
   }
 
   async function runTest() {
@@ -729,29 +830,35 @@
     const resEl = document.getElementById('pgResult');
     const quoteEl = document.getElementById('pgQuote');
     const fromEl = document.getElementById('pgFrom');
+    const encode = document.getElementById('pgEncode').value;
+    const selectedCharset = document.getElementById('pgCharset').value;
+
     resEl.textContent = '请求中…';
     resEl.style.display = 'block';
     quoteEl.style.display = 'none';
     fromEl.style.display = 'none';
+    quoteEl.style.cssText = 'display:none;';
+    fromEl.style.cssText = 'display:none;';
     tag.style.display = 'none';
 
     try {
       const t0 = performance.now();
       const resp = await fetch(url, { cache: 'no-store' });
+      const { text, charsetUsed } = await decodeResponse(resp, selectedCharset);
       const dt = Math.round(performance.now() - t0);
-      const text = await resp.text();
+      const contentType = (resp.headers.get('content-type') || '').split(';')[0].trim() || '—';
 
-      tag.textContent = (resp.ok ? 'OK ' : 'ERR ') + resp.status + '  ' + dt + 'ms';
+      tag.textContent = (resp.ok ? 'OK ' : 'ERR ') + resp.status + '  ' + dt + 'ms  ·  ' + charsetUsed + '  ·  ' + contentType;
       tag.className = 'status-tag ' + (resp.ok ? 'ok' : 'err');
       tag.style.display = 'inline-block';
       playAnim(tag);
 
-      const encode = document.getElementById('pgEncode').value;
-      if (encode === 'json' && resp.ok) {
+      if (resp.ok && encode === 'json') {
         try {
           const json = JSON.parse(text);
-          if (json.hitokoto) {
+          if (json && json.hitokoto) {
             quoteEl.className = 'pg-result hitokoto-quote';
+            quoteEl.style.cssText = '';
             quoteEl.style.display = 'block';
             quoteEl.textContent = json.hitokoto;
             playAnim(quoteEl, 'fadeIn .45s ease both');
@@ -760,6 +867,7 @@
             if (json.from_who) fromParts.push('  ' + json.from_who);
             if (fromParts.length) {
               fromEl.className = 'pg-result hitokoto-from';
+              fromEl.style.cssText = '';
               fromEl.style.display = 'block';
               fromEl.textContent = fromParts.join('');
               playAnim(fromEl, 'fadeIn .5s ease both');
@@ -767,18 +875,60 @@
           }
           resEl.textContent = JSON.stringify(json, null, 2);
           playAnim(resEl, 'fadeIn .45s ease both');
-        } catch (_) { resEl.textContent = text; playAnim(resEl, 'fadeIn .45s ease both'); }
+        } catch (_) {
+          resEl.textContent = text;
+          playAnim(resEl, 'fadeIn .45s ease both');
+        }
+      } else if (!resp.ok) {
+        // 错误响应：尝试解析 JSON 错误体，展示友好信息
+        const parsed = tryPrettyJSON(text);
+        if (parsed.ok && parsed.value && parsed.value.error) {
+          const err = parsed.value;
+          resEl.textContent =
+            '❌ 请求被拒绝（HTTP ' + resp.status + '）\n' +
+            '错误：' + err.error + '\n' +
+            (err.tip ? '提示：' + err.tip + '\n' : '') +
+            (err.supported ? '可用格式：' + err.supported.join(', ') + '\n' : '') +
+            '\n原始响应：\n' + text;
+        } else {
+          resEl.textContent = text || ('HTTP ' + resp.status + ' 响应体为空');
+        }
+        playAnim(resEl, 'fadeIn .45s ease both');
       } else {
         resEl.textContent = text;
         playAnim(resEl, 'fadeIn .45s ease both');
       }
     } catch (e) {
-      resEl.textContent = '请求失败：' + e.message;
-      playAnim(resEl, 'fadeIn .45s ease both');
-      tag.textContent = 'NETWORK ERROR';
+      // 网络级失败：展示错误，并提供离线 mock 兜底以便用户预览效果
+      tag.textContent = 'NETWORK ERROR  ·  展示离线示例';
       tag.className = 'status-tag err';
       tag.style.display = 'inline-block';
       playAnim(tag);
+      if (encode === 'json') {
+        const mockJson = OFFLINE_MOCK.json;
+        quoteEl.className = 'pg-result hitokoto-quote';
+        quoteEl.style.cssText = '';
+        quoteEl.style.display = 'block';
+        quoteEl.textContent = mockJson.hitokoto;
+        playAnim(quoteEl, 'fadeIn .45s ease both');
+        const fromParts = [];
+        if (mockJson.from) fromParts.push('——《' + mockJson.from + '》');
+        if (mockJson.from_who) fromParts.push('  ' + mockJson.from_who);
+        if (fromParts.length) {
+          fromEl.className = 'pg-result hitokoto-from';
+          fromEl.style.cssText = '';
+          fromEl.style.display = 'block';
+          fromEl.textContent = fromParts.join('');
+          playAnim(fromEl, 'fadeIn .5s ease both');
+        }
+        resEl.textContent = JSON.stringify(mockJson, null, 2);
+        playAnim(resEl, 'fadeIn .45s ease both');
+      } else {
+        resEl.textContent =
+          '⚠️ 无法连接到 API（' + (e && e.message ? e.message : String(e)) + '）。\n' +
+          '当前预览为离线模式，请启动 PHP 后端（php -S 127.0.0.1:8080）或部署后再次体验。';
+        playAnim(resEl, 'fadeIn .45s ease both');
+      }
     }
   }
 

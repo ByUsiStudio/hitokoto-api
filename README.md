@@ -49,19 +49,20 @@ hitokoto/
 │   ├── sh.php           # POSIX Shell 变量
 │   ├── bat.php          # Windows 批处理变量
 │   └── ps1.php          # PowerShell 变量
-└── sentences/           # 分类句子库（按分类拆分的 JSON 文件）
-    ├── a.json           # 动画
-    ├── b.json           # 漫画
-    ├── c.json           # 游戏
-    ├── d.json           # 文学
-    ├── e.json           # 原创
-    ├── f.json           # 网络
-    ├── g.json           # 其他
-    ├── h.json           # 影视
-    ├── i.json           # 诗词
-    ├── j.json           # 网易云
-    ├── k.json           # 哲学
-    └── l.json           # 抖机灵
+└── sentences-bundle/
+    └── sentences/
+          ├── a.json           # 动画
+          ├── b.json           # 漫画
+          ├── c.json           # 游戏
+          ├── d.json           # 文学
+          ├── e.json           # 原创
+          ├── f.json           # 网络
+          ├── g.json           # 其他
+          ├── h.json           # 影视
+          ├── i.json           # 诗词
+          ├── j.json           # 网易云
+          ├── k.json           # 哲学
+          └── l.json           # 抖机灵
 ```
 
 ---
