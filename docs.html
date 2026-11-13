@@ -377,8 +377,8 @@
     <span class="hero-badge">RESTful JSON API</span>
     <h1 class="hero-title">ByUsi Studio &middot; 一言 API</h1>
     <p class="hero-subtitle">
-      收录动画、漫画、游戏、文学、诗词、网易云热评等 12 大分类，
-      为你的网站、小程序、应用提供优美的随机句子接口。
+      按 12 个分类收录动画、漫画、游戏、文学、诗词、网易云热评等句子，
+      网站、小程序和应用都能直接调用。
     </p>
     <div class="hero-actions">
       <a class="btn btn-primary" href="#playground">立即体验</a>
@@ -388,7 +388,7 @@
 
   <section class="section" id="categories">
     <h2 class="section-title">支持的分类</h2>
-    <p class="section-desc">共 12 个分类，点击卡片可快速筛选并跳转测试。</p>
+    <p class="section-desc">共 12 个分类。点击卡片会跳到下方测试区，并自动选中这个分类。</p>
     <div class="cat-grid" id="catGrid">
       <div class="loading-tip">正在加载分类数据…</div>
     </div>
@@ -412,33 +412,32 @@
               <td><span class="param-name">form</span></td>
               <td>string</td>
               <td><span class="param-default">text</span></td>
-              <td><b>（保留原有）</b> 输出格式。可选值：<code>text</code> / <code>json</code> / <code>json5</code> / <code>xml</code> / <code>ini</code> / <code>toml</code> / <code>js</code> / <code>sh</code> / <code>bat</code> / <code>ps1</code></td>
+              <td>输出格式，可选：<code>text</code> / <code>json</code> / <code>json5</code> / <code>xml</code> / <code>ini</code> / <code>toml</code> / <code>js</code> / <code>sh</code> / <code>bat</code> / <code>ps1</code></td>
             </tr>
             <tr>
               <td><span class="param-name">encode</span></td>
               <td>string</td>
-              <td>&mdash;</td>
-              <td><b>（新增）</b> 输出格式别名，优先级高于 <code>form</code>，便于与其他一言服务兼容。支持与 <code>form</code> 相同的全部 10 种格式。</td>
+              <td>无</td>
+              <td>输出格式的别名，优先级高于 <code>form</code>，支持与 <code>form</code> 相同的 10 种格式，方便兼容其他一言服务。</td>
             </tr>
             <tr>
               <td><span class="param-name">c</span></td>
               <td>string</td>
-              <td>（全部分类）</td>
-              <td><b>（新增）</b> 分类筛选。单个：<code>?c=a</code>；多个用英文逗号：<code>?c=a,b,c</code>。不传则随机全部分类。</td>
+              <td>全部分类</td>
+              <td>分类筛选。单个分类用 <code>?c=a</code>，多个用英文逗号，如 <code>?c=a,b,c</code>。不传就在全部分类里随机。</td>
             </tr>
             <tr>
               <td><span class="param-name">charset</span></td>
               <td>string</td>
               <td><span class="param-default">utf-8</span></td>
-              <td><b>（新增）</b> 响应字符集，如 <code>?charset=gbk</code>。</td>
+              <td>响应字符集，如 <code>?charset=gbk</code>。</td>
             </tr>
           </tbody>
         </table>
         <p style="margin-top:18px; padding:14px 16px; background:var(--blue-50); border-radius:10px; font-size:13px; color:var(--text-secondary);">
           <b style="color:var(--blue-500);">元信息说明：</b>
-          除 <code>text</code> 格式仅返回一言内容外，其余 9 种格式都会在响应中包含
-          <b>API 地址</b>（<code>api</code>）、<b>开源仓库地址</b>（<code>repository</code>，含 gitee / github / codeberg）与
-          <b>开源协议</b>（<code>license: AGPLv3</code>，<code>license_url</code>）。
+          除 <code>text</code> 只返回句子内容外，其余 9 种格式的响应都会带上 API 地址（<code>api</code>）、
+          开源仓库地址（<code>repository</code>，含 gitee、github、codeberg）和开源协议（<code>license: AGPLv3</code>、<code>license_url</code>）。
         </p>
       </div>
     </div>
@@ -449,7 +448,7 @@
     <div class="examples">
       <div class="card example-card">
         <div class="example-title">示例 1：最简调用（默认 text，全分类随机）</div>
-        <div class="example-desc">直接返回纯文本一言。</div>
+        <div class="example-desc">直接返回一段纯文本。</div>
 <pre class="code"><span class="c-uri">GET <span class="api-base"></span></span>
 
 <span class="c-com">// Response (text/plain)</span>
@@ -457,7 +456,7 @@
       </div>
       <div class="card example-card">
         <div class="example-title">示例 2：JSON 格式 + 指定分类</div>
-        <div class="example-desc">返回完整元数据，包括 uuid、creator_uid、reviewer、commit_from 等字段。</div>
+        <div class="example-desc">返回完整元数据，uuid、creator_uid、reviewer、commit_from 等字段都在里面。</div>
 <pre class="code"><span class="c-uri">GET <span class="api-base"></span>?<span class="c-key">encode</span>=<span class="c-str">json</span>&amp;<span class="c-key">c</span>=<span class="c-str">a</span></span>
 
 <span class="c-com">// Response (application/json)</span>
@@ -487,17 +486,17 @@
       </div>
       <div class="card example-card">
         <div class="example-title">示例 3：多分类 + XML</div>
-        <div class="example-desc">从漫画、游戏、文学三个分类随机。</div>
+        <div class="example-desc">从漫画、游戏、文学三个分类里随机取一条。</div>
 <pre class="code"><span class="c-uri">GET <span class="api-base"></span>?<span class="c-key">form</span>=<span class="c-str">xml</span>&amp;<span class="c-key">c</span>=<span class="c-str">b,c,d</span></span></pre>
       </div>
       <div class="card example-card">
         <div class="example-title">示例 4：INI 格式 + 诗词 + 网易云</div>
-        <div class="example-desc">适合 ini 解析场景。</div>
+        <div class="example-desc">返回 INI 格式，可以直接交给 INI 解析器读取。</div>
 <pre class="code"><span class="c-uri">GET <span class="api-base"></span>?<span class="c-key">form</span>=<span class="c-str">ini</span>&amp;<span class="c-key">c</span>=<span class="c-str">i,j</span></span></pre>
       </div>
       <div class="card example-card">
         <div class="example-title">示例 5：SH 格式（Shell 变量）</div>
-        <div class="example-desc">可直接 <code>eval</code> 用于 Shell 脚本。</div>
+        <div class="example-desc">可以直接 <code>eval</code> 到 Shell 脚本里。</div>
 <pre class="code"><span class="c-uri">GET <span class="api-base"></span>?<span class="c-key">encode</span>=<span class="c-str">sh</span></span>
 
 <span class="c-com"># Response (application/x-sh)</span>
@@ -508,7 +507,7 @@
       </div>
       <div class="card example-card">
         <div class="example-title">示例 6：JS 格式（变量赋值）</div>
-        <div class="example-desc">前端可通过 <code>&lt;script src&gt;</code> 直接引入并读取 <code>hitokoto</code> 变量。</div>
+        <div class="example-desc">前端用 <code>&lt;script src&gt;</code> 引入后，就可以读取 <code>hitokoto</code> 变量。</div>
 <pre class="code"><span class="c-uri">GET <span class="api-base"></span>?<span class="c-key">encode</span>=<span class="c-str">js</span>&amp;<span class="c-key">c</span>=<span class="c-str">a</span></span>
 
 <span class="c-com">// Response (text/javascript)</span>
@@ -549,7 +548,7 @@
           </select>
         </div>
         <div class="pg-field pg-field-full">
-          <label>分类筛选 (c) &mdash; 点击切换，空=全部：</label>
+          <label>分类筛选 (c)：点击切换，不选就是全部分类。</label>
           <div class="pg-cats" id="pgCats"></div>
         </div>
       </form>
@@ -625,7 +624,7 @@
   async function loadCategories() {
     let loadedFromNetwork = false;
     try {
-      const resp = await fetch('./categories.json', { cache: 'no-cache' });
+      const resp = await fetch('./sentences-bundle/categories.json', { cache: 'no-cache' });
       if (!resp.ok) throw new Error('HTTP ' + resp.status);
       const data = await resp.json();
       if (!Array.isArray(data)) throw new Error('categories.json 不是数组');

@@ -26,7 +26,6 @@
 hitokoto/
 ├── index.php            # API 入口：参数处理、读取数据、准备元信息、分发模板；无参数时 302 到 docs.html
 ├── docs.html            # 文档和在线测试页
-├── categories.json      # 分类元数据（名称、描述、key、路径）
 ├── push.bat             # 推送到多个远端的脚本
 ├── .gitmodules          # sentences-bundle 子模块配置
 ├── LICENSE              # AGPL-3.0 协议
@@ -73,7 +72,7 @@ hitokoto/
 
 ### 部署方式
 
-1. 把 `index.php`、`docs.html`、`categories.json`、`lib/`、`templates/` 和 `sentences-bundle/` 上传到 Web 服务器。站点根目录或子目录都可以。
+1. 把 `index.php`、`docs.html`、`lib/`、`templates/` 和 `sentences-bundle/` 上传到 Web 服务器。站点根目录或子目录都可以。
 2. 确认 PHP 能读取 `sentences-bundle/sentences/` 和 `templates/` 下的文件。
 3. 访问 `https://your-domain/` 会 302 跳到 `docs.html`，也可以直接调用 API。
 
