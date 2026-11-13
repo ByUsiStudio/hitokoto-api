@@ -71,7 +71,7 @@ hitokoto/
 
 ### 环境要求
 
-- PHP ≥ 7.0（需启用 `json`、`mbstring` 扩展）
+- PHP ≥ 7.0（已在 PHP 8.2 下验证；仅需 `json` 扩展，`mbstring` 为可选，未启用时自动降级）
 - 任意 Web 服务器（Apache / Nginx / IIS 等）或 PHP 内置服务器
 
 ### 部署方式

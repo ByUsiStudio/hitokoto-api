@@ -25,6 +25,28 @@ function getApiBaseUrl() {
     return $scheme . '://' . $host . $dir . '/';
 }
 
+/**
+ * 读取标量查询参数。
+ * PHP 8 起 trim()/strtolower() 等函数收到数组会抛 TypeError，
+ * 因此对形如 ?c[]=a 的数组参数统一返回 $default，交由调用方按默认值处理。
+ */
+function getQueryParam($name, $default = null) {
+    if (!isset($_GET[$name]) || !is_scalar($_GET[$name])) {
+        return $default;
+    }
+    return (string)$_GET[$name];
+}
+
+/** 按 UTF-8 码点计算字符串长度；未启用 mbstring 时使用 PCRE 等价实现 */
+function strLengthUtf8($value) {
+    $value = (string)$value;
+    if (function_exists('mb_strlen')) {
+        return mb_strlen($value, 'UTF-8');
+    }
+    $count = preg_match_all('/./us', $value, $matches);
+    return $count === false ? strlen($value) : $count;
+}
+
 /** Shell 单引号转义：值用单引号包裹，内部单引号转为 '\'' */
 function escSh($v) {
     if ($v === null) return "''";

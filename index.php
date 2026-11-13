@@ -29,22 +29,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-$hasApiParams = isset($_GET['form']) || isset($_GET['encode'])
-    || isset($_GET['c']) || isset($_GET['charset'])
-    || isset($_GET['callback']) || isset($_GET['select'])
-    || isset($_GET['min_length']) || isset($_GET['max_length']);
+$hasApiParams = getQueryParam('form') !== null || getQueryParam('encode') !== null
+    || getQueryParam('c') !== null || getQueryParam('charset') !== null
+    || getQueryParam('callback') !== null || getQueryParam('select') !== null
+    || getQueryParam('min_length') !== null || getQueryParam('max_length') !== null;
 
 if (!$hasApiParams) {
     header('Location: ./docs.html', true, 302);
     exit;
 }
 
-$encode = isset($_GET['encode']) ? strtolower(trim($_GET['encode'])) : null;
-$form = $encode ?? (isset($_GET['form']) ? strtolower(trim($_GET['form'])) : 'text');
+$encodeRaw = getQueryParam('encode');
+$encode = $encodeRaw !== null ? strtolower(trim($encodeRaw)) : null;
+$formRaw = getQueryParam('form');
+$form = $encode ?? ($formRaw !== null ? strtolower(trim($formRaw)) : 'text');
 
 $templateDir = __DIR__ . '/templates';
 $supportedFormats = [];
-foreach (glob($templateDir . '/*.php') as $tplFile) {
+foreach (glob($templateDir . '/*.php') ?: [] as $tplFile) {
     $supportedFormats[] = basename($tplFile, '.php');
 }
 sort($supportedFormats);
@@ -60,15 +62,20 @@ if (!in_array($form, $supportedFormats, true)) {
 }
 
 $categories = [];
-if (isset($_GET['c']) && $_GET['c'] !== '') {
-    $raw = strtolower(trim($_GET['c']));
+$rawCategories = getQueryParam('c');
+if ($rawCategories !== null && $rawCategories !== '') {
+    $raw = strtolower(trim($rawCategories));
     $categories = array_filter(explode(',', $raw), function ($v) {
         return preg_match('/^[a-l]$/', $v) === 1;
     });
     $categories = array_values(array_unique($categories));
 }
 
-$charset = isset($_GET['charset']) ? trim($_GET['charset']) : 'utf-8';
+$charsetRaw = getQueryParam('charset');
+$charset = $charsetRaw !== null ? trim($charsetRaw) : 'utf-8';
+if ($charset === '' || preg_match('/^[A-Za-z0-9_-]+$/', $charset) !== 1) {
+    $charset = 'utf-8';
+}
 
 $sentencesDir = __DIR__ . '/sentences-bundle/sentences';
 if (!is_dir($sentencesDir)) {
@@ -113,14 +120,15 @@ if (json_last_error() !== JSON_ERROR_NONE || !is_array($sentences) || empty($sen
 
 $randomItem = $sentences[array_rand($sentences)];
 
-$hitokoto = isset($randomItem['hitokoto']) ? trim($randomItem['hitokoto']) : '';
+$hitokotoValue = $randomItem['hitokoto'] ?? '';
+$hitokoto = is_scalar($hitokotoValue) ? trim((string)$hitokotoValue) : '';
 $type = $randomItem['type'] ?? $selectedCat;
 $from = $randomItem['from'] ?? '';
 $from_who = $randomItem['from_who'] ?? null;
 $creator = $randomItem['creator'] ?? '';
 $creator_uid = $randomItem['creator_uid'] ?? 0;
 $created_at = $randomItem['created_at'] ?? '';
-$length = $randomItem['length'] ?? mb_strlen($hitokoto, 'UTF-8');
+$length = $randomItem['length'] ?? strLengthUtf8($hitokoto);
 
 $apiUrl = getApiBaseUrl();
 $repositories = [
