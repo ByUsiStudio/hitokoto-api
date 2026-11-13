@@ -10,6 +10,7 @@
  *             可选值：a(动画) b(漫画) c(游戏) d(文学) e(原创) f(网络)
  *                     g(其他) h(影视) i(诗词) j(网易云) k(哲学) l(抖机灵)
  *   charset - 字符集（新增）：默认 utf-8
+ *   ping    - 探活：传任意值即返回 pong，不读取句子文件
  *
  * 输出模板位于 templates/ 目录，每个格式一个独立文件；新增格式只需新增模板文件，
  * 支持的格式列表会自动从该目录发现。
@@ -23,16 +24,22 @@ require __DIR__ . '/lib/helpers.php';
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
+header('Cache-Control: no-store, max-age=0');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(204);
     exit;
 }
 
+// 轻量探活，不读取句子文件
+if (getQueryParam('ping') !== null) {
+    header('Content-Type: text/plain; charset=utf-8');
+    echo 'pong';
+    exit;
+}
+
 $hasApiParams = getQueryParam('form') !== null || getQueryParam('encode') !== null
-    || getQueryParam('c') !== null || getQueryParam('charset') !== null
-    || getQueryParam('callback') !== null || getQueryParam('select') !== null
-    || getQueryParam('min_length') !== null || getQueryParam('max_length') !== null;
+    || getQueryParam('c') !== null || getQueryParam('charset') !== null;
 
 if (!$hasApiParams) {
     header('Location: ./docs.html', true, 302);

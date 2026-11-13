@@ -75,6 +75,7 @@ hitokoto/
 1. 把 `index.php`、`docs.html`、`lib/`、`templates/` 和 `sentences-bundle/` 上传到 Web 服务器。站点根目录或子目录都可以。
 2. 确认 PHP 能读取 `sentences-bundle/sentences/` 和 `templates/` 下的文件。
 3. 访问 `https://your-domain/` 会 302 跳到 `docs.html`，也可以直接调用 API。
+4. 部署完成后请求 `/?ping=1`，返回 `pong` 就说明 PHP 正常。
 
 > 文档页就是一个 HTML 文件，不用构建，放哪都能用。
 

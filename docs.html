@@ -443,6 +443,61 @@
     </div>
   </section>
 
+  <section class="section" id="status">
+    <h2 class="section-title">返回状态码</h2>
+    <p class="section-desc">接口成功时返回所选格式的内容，出错时返回 JSON 说明。下面列出可能遇到的状态码。</p>
+    <div class="card">
+      <div class="params-wrap">
+        <table class="params">
+          <thead>
+            <tr>
+              <th style="width:14%">状态码</th>
+              <th style="width:24%">含义</th>
+              <th>触发场景</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="param-name">200</span></td>
+              <td>OK</td>
+              <td>请求成功，按 <code>form</code> 或 <code>encode</code> 指定的格式返回内容。探活接口 <code>?ping=1</code> 同样返回 200，响应体是 <code>pong</code>。</td>
+            </tr>
+            <tr>
+              <td><span class="param-name">204</span></td>
+              <td>No Content</td>
+              <td>收到 <code>OPTIONS</code> 预检请求，只返回 CORS 响应头，没有响应体。</td>
+            </tr>
+            <tr>
+              <td><span class="param-name">302</span></td>
+              <td>Found</td>
+              <td>请求没有携带任何 API 参数，临时跳转到 <code>docs.html</code>。</td>
+            </tr>
+            <tr>
+              <td><span class="param-name">400</span></td>
+              <td>Bad Request</td>
+              <td>输出格式不在支持列表。响应是 JSON，包含 <code>error</code>、<code>supported</code> 和 <code>tip</code> 三个字段。</td>
+            </tr>
+            <tr>
+              <td><span class="param-name">404</span></td>
+              <td>Not Found</td>
+              <td>请求的路径不存在，由 Web 服务器返回，例如拼错的地址或不存在的文件。</td>
+            </tr>
+            <tr>
+              <td><span class="param-name">500</span></td>
+              <td>Internal Server Error</td>
+              <td>服务端数据异常：句子目录缺失、没有可用的分类文件、文件读取失败或 JSON 内容损坏。响应是 JSON，带 <code>error</code> 说明。</td>
+            </tr>
+            <tr>
+              <td><span class="param-name">502</span></td>
+              <td>Bad Gateway</td>
+              <td>Web 服务器连不上 PHP 后端。常见于 PHP-FPM 未启动、socket 配置错误或部署重启期间，和接口代码无关。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
   <section class="section" id="examples">
     <h2 class="section-title">调用示例</h2>
     <div class="examples">
